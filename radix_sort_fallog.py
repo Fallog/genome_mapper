@@ -92,33 +92,12 @@ def countingSort(int_list: list[int]) -> list[int]:
 
 def radixSort(int_list: list[int]) -> None:
     print(f"Starting list {int_list}")
-    sorted_list = list(range(len(int_list)))
+    # sorted_list = list(range(len(int_list)))
     nb_loops = getDigitsNumber(max(int_list))
     for i in range(1, nb_loops + 1):
-        digits_list = createDigitList(int_list, i)
-        count_array = generateCountArray(digits_list, cumulative=True)
-        print(f"Digits list {digits_list}")
-        print(f"Count array {count_array}")
-        for j in range(1, len(digits_list) + 1):
-            print(int_list)
-            actual_digit = digits_list[-j]
-            if not actual_digit == 0:
-                nb_same_digit = digits_list[digits_list.index(actual_digit) :].count(
-                    actual_digit
-                )
-                value_in_count_array = count_array[actual_digit]
-                print(
-                    f"Digit {actual_digit} | count_array[{actual_digit}] {value_in_count_array}"
-                )
-                count_array[actual_digit] = value_in_count_array - nb_same_digit
-                sorted_list[value_in_count_array - nb_same_digit] = int_list[-j]
-                print(
-                    f"Index {value_in_count_array - nb_same_digit} is set to {int_list[-j]}"
-                )
-        print(f"List after loop {sorted_list}")
-        int_list = sorted_list
-
-    return sorted_list
+        digit_list = createDigitList(int_list, i)
+        sorted_digit_list = countingSort(digit_list)
+        # Réarranger les éléments dans int_list pour
 
 
 if __name__ == "__main__":
