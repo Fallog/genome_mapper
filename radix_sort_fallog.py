@@ -66,7 +66,28 @@ def createDigitList(int_list: list[int], target_digit: int) -> list[int]:
     for integer in int_list:
         if not integer // 10 ** (target_digit - 1) < 1:
             digits_list.append(extractDigit(integer, target_digit))
+        else:
+            digits_list.append(0)
     return digits_list
+
+
+def countingSort(int_list: list[int]) -> list[int]:
+    """Sort an array of digits in ascending order
+
+    Args:
+        int_list (list[int]): array of one digit integers
+
+    Returns:
+        list[int]: sorted version of int_list, ascending order
+    """
+    count_array = generateCountArray(int_list, cumulative=True)
+    sorted_array = [0] * len(int_list)
+    for integer in int_list:
+        new_index = count_array[integer]
+        sorted_array[new_index - 1] = integer
+        # count_array[integer:] = [i - 1 for i in count_array[integer:]]
+        count_array[integer] -= 1
+    return sorted_array
 
 
 def radixSort(int_list: list[int]) -> None:
@@ -119,9 +140,10 @@ if __name__ == "__main__":
     print(extractDigit(7, 2) == 0)  # OK
     print(extractDigit(1452612, 1) == 2)  # OK
 
-    test_list = [56, 32, 9, 21, 991, 484, 17]
-    print(createDigitList(test_list, 1) == [6, 2, 9, 1, 1, 4, 7])  # OK
-    print(createDigitList(test_list, 2) == [5, 3, 2, 9, 8, 1])  # OK
-    print(createDigitList(test_list, 3) == [9, 4])  # OK
+    test_list = [121, 432, 564, 23, 1, 45, 788]
+    print(createDigitList(test_list, 1) == [1, 2, 4, 3, 1, 5, 8])  # OK
+    print(createDigitList(test_list, 2) == [2, 3, 6, 2, 0, 4, 8])  # OK
+    print(createDigitList(test_list, 3) == [1, 4, 5, 0, 0, 0, 7])  # OK
 
-    print(radixSort(test_list))
+    digit_test_list = [1, 2, 4, 3, 1, 5, 8]
+    print(countingSort(digit_test_list) == [1, 1, 2, 3, 4, 5, 8])
