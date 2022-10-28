@@ -27,7 +27,7 @@ def generateCountArray(digits_list: list[int], cumulative: bool = False) -> list
     Returns:
         list[int]: list of the count of the digits present in digits_lits
     """
-    count_array = list(range(10))
+    count_array = list(range(max(digits_list) + 1))
     if cumulative:
         total_digits = 0
         for digit in count_array:
@@ -44,12 +44,13 @@ def extractDigit(integer: int, target_digit: int) -> int:
 
     Args:
         integer (int): number of type 'int' which digit is extracted
-        target_digit (int): an integer > 1 -> position of the extracted digit, 1 refering to the rightest digit in the integer
+        target_digit (int): an integer > 1 -> position of the extracted digit, 1 refering to the unit digit in the integer,
+        2 for the tens, 3 for hundreds etc.
 
     Returns:
         int: the digit to be extracted
     """
-    return int(str(integer // 10 ** (target_digit - 1))[-1])
+    return (integer // 10 ** (target_digit - 1)) % 10
 
 
 def createDigitList(int_list: list[int], target_digit: int) -> list[int]:
@@ -57,47 +58,50 @@ def createDigitList(int_list: list[int], target_digit: int) -> list[int]:
 
     Args:
         int_list (list[int]): every integers which digits are extracted
-        target_digit (int): position of the extracted digit, 1 refering to the rightest digit in the integer
+        target_digit (int): position of the extracted digit, 1 refering to the unit digit in the integer
 
     Returns:
         list[int]: every extracted digits
     """
     digits_list = []
     for integer in int_list:
-        if not integer // 10 ** (target_digit - 1) < 1:
+        if not extractDigit(integer, target_digit) < 1:
             digits_list.append(extractDigit(integer, target_digit))
         else:
             digits_list.append(0)
     return digits_list
 
 
-def countingSort(int_list: list[int]) -> list[int]:
+def countingSort(int_list: list[int], target_digit: int) -> list[int]:
     """Sort an array of digits in ascending order
-
+    based only on the target_digit
     Args:
         int_list (list[int]): array of one digit integers
 
     Returns:
         list[int]: sorted version of int_list, ascending order
     """
-    count_array = generateCountArray(int_list, cumulative=True)
+    count_array = generateCountArray(
+        createDigitList(int_list, target_digit), cumulative=True
+    )
     sorted_array = [0] * len(int_list)
     for integer in int_list:
-        new_index = count_array[integer]
+        new_index = count_array[extractDigit(integer, target_digit)]
         sorted_array[new_index - 1] = integer
-        # count_array[integer:] = [i - 1 for i in count_array[integer:]]
-        count_array[integer] -= 1
+        count_array[extractDigit(integer, target_digit)] -= 1
     return sorted_array
 
 
 def radixSort(int_list: list[int]) -> None:
     print(f"Starting list {int_list}")
-    # sorted_list = list(range(len(int_list)))
+    size = len(int_list)
+    sorted_list = [0] * size
     nb_loops = getDigitsNumber(max(int_list))
     for i in range(1, nb_loops + 1):
         digit_list = createDigitList(int_list, i)
         sorted_digit_list = countingSort(digit_list)
-        # Réarranger les éléments dans int_list pour
+
+    return sorted_list
 
 
 if __name__ == "__main__":
@@ -109,11 +113,11 @@ if __name__ == "__main__":
     print(getDigitsNumber(54136374251) == 11)  # OK
 
     print(
-        generateCountArray([1, 1, 1, 6, 5, 7, 2, 6]) == [0, 3, 1, 0, 0, 1, 2, 1, 0, 0]
+        generateCountArray([1, 1, 1, 6, 5, 7, 2, 6]) == [0, 3, 1, 0, 0, 1, 2, 1]
     )  # OK
     print(
         generateCountArray([1, 1, 1, 6, 5, 7, 2, 6], cumulative=True)
-        == [0, 3, 4, 4, 4, 5, 7, 8, 8, 8]
+        == [0, 3, 4, 4, 4, 5, 7, 8]
     )  # OK
 
     print(extractDigit(7, 2) == 0)  # OK
@@ -125,4 +129,9 @@ if __name__ == "__main__":
     print(createDigitList(test_list, 3) == [1, 4, 5, 0, 0, 0, 7])  # OK
 
     digit_test_list = [1, 2, 4, 3, 1, 5, 8]
-    print(countingSort(digit_test_list) == [1, 1, 2, 3, 4, 5, 8])
+    countingSort(test_list, 1)
+    print(test_list)
+
+    print(countingSort(test_list, 2) == [1, 23, 121, 432, 45, 564, 788])  # OK
+
+    # print(radixSort(test_list))
