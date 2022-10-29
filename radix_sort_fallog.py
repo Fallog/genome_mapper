@@ -2,6 +2,8 @@
 # IMPORTS #
 ###########
 import math
+import cProfile
+import random
 
 
 def getDigitsNumber(integer: int) -> int:
@@ -58,7 +60,8 @@ def createDigitList(int_list: list[int], target_digit: int) -> list[int]:
 
     Args:
         int_list (list[int]): every integers which digits are extracted
-        target_digit (int): position of the extracted digit, 1 refering to the unit digit in the integer
+        target_digit (int): position of the extracted digit, 1 refering to the unit digit in the integer,
+        2 for the tens, 3 for hundreds etc.
 
     Returns:
         list[int]: every extracted digits
@@ -73,19 +76,18 @@ def createDigitList(int_list: list[int], target_digit: int) -> list[int]:
 
 
 def countingSort(int_list: list[int], target_digit: int) -> list[int]:
-    """Sort an array of digits in ascending order
-    based only on the target_digit
+    """Sort an array of integers in ascending order based only on the target_digit
     Args:
-        int_list (list[int]): array of one digit integers
+        int_list (list[int]): array of integers
 
     Returns:
-        list[int]: sorted version of int_list, ascending order
+        list[int]: sorted version of int_list, in ascending order
     """
     count_array = generateCountArray(
         createDigitList(int_list, target_digit), cumulative=True
     )
     sorted_array = [0] * len(int_list)
-    for integer in int_list:
+    for integer in int_list[::-1]:  # reverse int_list
         new_index = count_array[extractDigit(integer, target_digit)]
         sorted_array[new_index - 1] = integer
         count_array[extractDigit(integer, target_digit)] -= 1
@@ -93,14 +95,18 @@ def countingSort(int_list: list[int], target_digit: int) -> list[int]:
 
 
 def radixSort(int_list: list[int]) -> None:
-    print(f"Starting list {int_list}")
-    size = len(int_list)
-    sorted_list = [0] * size
-    nb_loops = getDigitsNumber(max(int_list))
-    for i in range(1, nb_loops + 1):
-        digit_list = createDigitList(int_list, i)
-        sorted_digit_list = countingSort(digit_list)
+    """Sort an array of integers in ascending order.
 
+    Args:
+        int_list (list[int]): array of integers
+
+    Returns:
+        _type_: sorted version of int_list, in ascending order
+    """
+    nb_loops = getDigitsNumber(max(int_list))
+    for target_digit in range(1, nb_loops + 1):
+        sorted_list = countingSort(int_list, target_digit)
+        int_list = sorted_list
     return sorted_list
 
 
@@ -130,8 +136,12 @@ if __name__ == "__main__":
 
     digit_test_list = [1, 2, 4, 3, 1, 5, 8]
     countingSort(test_list, 1)
-    print(test_list)
 
-    print(countingSort(test_list, 2) == [1, 23, 121, 432, 45, 564, 788])  # OK
+    print(countingSort(test_list, 1) == [121, 1, 432, 23, 564, 45, 788])  # OK
+    print(countingSort(test_list, 2) == [1, 121, 23, 432, 45, 564, 788])  # OK
+    print(countingSort(test_list, 3) == [23, 1, 45, 121, 432, 564, 788])  # OK
 
-    # print(radixSort(test_list))
+    print(radixSort(test_list) == [1, 23, 45, 121, 432, 564, 788])
+
+    large_test = [random.randint(0, 5000) for i in range(50000)]
+    cProfile.run("radixSort(large_test)")
