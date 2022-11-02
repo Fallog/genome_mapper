@@ -1,11 +1,11 @@
 # import numpy   ## A convertir en numpy
 from array import array
 import numpy as np
-from radixSort import radixSort
+from quickSort import quickSort
 
 
 def strToAscii(text: str) -> array:  # ya un numpy loadtxt qui existe
-    res_array = np.fromstring(text, np.int8)
+    res_array = np.frombuffer(text.encode(), np.int8)
     return res_array
 
 
@@ -22,16 +22,14 @@ def makeP12(t_list: array) -> array:
 
 
 def makeTriplet(t_list: list[int], p12_list: list[int]) -> list[list[int]]:
-    r12 = np.empty((len(p12_list), 3))
-    dtype = [("1", int), ("2", int), ("3", int)]
-    print(r12)
+    r12 = np.zeros(len(p12_list), dtype=[("1", int), ("2", int), ("3", int)])
     for i, ind in enumerate(p12_list):
-        r12[i] = np.array((t_list[ind], t_list[ind + 1], t_list[ind + 2]), dtype=dtype)
+        r12[i] = (t_list[ind], t_list[ind + 1], t_list[ind + 2])
     return r12
 
 
 def sortTriplet(r12: list[list[int]]) -> list[list[int]]:
-    pass
+    return quickSort(r12)
 
 
 def occur_triplet_list(r12_sorted: list[list[int]]) -> list[int]:
@@ -42,20 +40,29 @@ def occur_triplet_list(r12_sorted: list[list[int]]) -> list[int]:
             pass
 
 
-# Idée --> pour sort les triplers : faire en sort qu'un triplé = un nombre a 3*x chiffre.
+def step1(init_seq):
+    T = np.concatenate((init_seq, np.zeros(3)))
+    p12 = makeP12(T)
+    print(p12)
+    r12 = makeTriplet(T, p12)
+    print(r12)
+    tp = sortTriplet(r12)
+    print(tp)
+    print(r12)
+
+    if tp.shape == np.unique(tp).shape:
+        return None  # Jcp pas encore ce qu'on doit faire apres
+    else:
+        step1(tp)
 
 
-s = "abcabcacab"
+if __name__ == "__main__":
+    s = "abcabcacab"
 
-T = strToAscii(s)
-T = np.concatenate((T, np.zeros(3)))
-print(T)
+    T = strToAscii(s)
 
-p12 = makeP12(T)
-print(p12)
+    step1(T)
 
-r12 = makeTriplet(T, p12)
-print(r12)
 
 # Important pas stocker tout les info, en théorie y'a juste order a stocker. (P0 a voir ptete besoin a la fin).
 # Recoder le "radix" short algo
