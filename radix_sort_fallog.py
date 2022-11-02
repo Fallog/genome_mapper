@@ -66,16 +66,15 @@ def createDigitList(int_list: list[int], target_digit: int) -> list[int]:
     Returns:
         list[int]: every extracted digits
     """
-    digits_list = []
-    for integer in int_list:
-        if not extractDigit(integer, target_digit) < 1:
-            digits_list.append(extractDigit(integer, target_digit))
-        else:
-            digits_list.append(0)
+    digits_list = [0] * len(int_list)
+    for index, integer in enumerate(int_list):
+        digit = extractDigit(integer, target_digit)
+        if not digit < 1:
+            digits_list[index] = digit
     return digits_list
 
 
-def countingSort(int_list: list[int], target_digit: int) -> list[int]:
+def countingSort(int_list: list[int], target_digit: int):
     """Sort an array of integers in ascending order based only on the target_digit
     Args:
         int_list (list[int]): array of integers
@@ -86,11 +85,16 @@ def countingSort(int_list: list[int], target_digit: int) -> list[int]:
     count_array = generateCountArray(
         createDigitList(int_list, target_digit), cumulative=True
     )
-    sorted_array = [0] * len(int_list)
-    for integer in int_list[::-1]:  # reverse int_list
-        new_index = count_array[extractDigit(integer, target_digit)]
+    size = len(int_list)
+    sorted_array = [0] * size
+    i = size - 1
+    while i >= 0:
+        integer = int_list[i]
+        digit = extractDigit(integer, target_digit)
+        new_index = count_array[digit]
         sorted_array[new_index - 1] = integer
-        count_array[extractDigit(integer, target_digit)] -= 1
+        count_array[digit] -= 1
+        i -= 1
     return sorted_array
 
 
@@ -141,7 +145,7 @@ if __name__ == "__main__":
     print(countingSort(test_list, 2) == [1, 121, 23, 432, 45, 564, 788])  # OK
     print(countingSort(test_list, 3) == [23, 1, 45, 121, 432, 564, 788])  # OK
 
-    print(radixSort(test_list) == [1, 23, 45, 121, 432, 564, 788])
+    print(radixSort(test_list) == [1, 23, 45, 121, 432, 564, 788])  # OK
 
-    large_test = [random.randint(0, 5000) for i in range(50000)]
+    large_test = [random.randint(0, 5000) for i in range(500000)]
     cProfile.run("radixSort(large_test)")
