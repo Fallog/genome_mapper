@@ -56,5 +56,5 @@ a = radixSort(data)
 print(data, a)
 
 
-datatest = [randint(1000000, 11000000) for i in range(50000)]
+datatest = [randint(90, 99) for i in range(500000)]
 cProfile.run("radixSort(datatest)")
