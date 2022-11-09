@@ -2,10 +2,9 @@
 # IMPORTS #
 ###########
 import math
-import cProfile
+
+# import cProfile
 import random
-from IDTuple import IDTuple
-from IDTupleList import IDTupleList
 
 
 def getDigitsNumber(integer: int) -> int:
@@ -20,18 +19,7 @@ def getDigitsNumber(integer: int) -> int:
     return math.ceil(math.log10(integer))
 
 
-def findMaxinTupleList(tuple_list: tuple[int]) -> int:
-    greatest_int = 0
-    for tuple in tuple_list:
-        max_element = max(tuple)
-        if max_element > greatest_int:
-            greatest_int = max_element
-    return greatest_int
-
-
-def generateCountArray(
-    id_tuple_l: list[IDTuple], cumulative: bool = False
-) -> list[int]:
+def generateCountArray(digits_list: list[tuple], cumulative: bool = False) -> list[int]:
     """Computes an array containing the number of occurences of every digits in digits_list.
 
 
@@ -42,15 +30,15 @@ def generateCountArray(
     Returns:
         list[int]: list of the count of the digits present in digits_lits
     """
-    count_array = list(range(findMaxinTupleList(id_tuple_l) + 1))
+    count_array = list(range(max(digits_list) + 1))
     if cumulative:
         total_digits = 0
         for digit in count_array:
-            total_digits += id_tuple_l.count(digit)
+            total_digits += digits_list.count(digit)
             count_array[digit] = total_digits
     else:
         for digit in count_array:
-            count_array[digit] = id_tuple_l.count(digit)
+            count_array[digit] = digits_list.count(digit)
     return count_array
 
 
@@ -68,34 +56,32 @@ def extractDigit(integer: int, target_digit: int) -> int:
     return (integer // 10 ** (target_digit - 1)) % 10
 
 
-def createLinkedDigitList(tuple_list: list[int], target_digit: int) -> list[int]:
+def createDigitList(
+    tuple_list: list[tuple[int]], target_int: int, target_digit: int
+) -> list[int]:
     """Extract the target_digit in a list of integers
 
     Args:
-        int_list (list[int]): every integers which digits are extracted
+        tuple_list (list[tuple[int]]): list of triplets
         target_digit (int): position of the extracted digit, 1 refering to the unit digit in the integer,
         2 for the tens, 3 for hundreds etc.
 
     Returns:
         list[int]: every extracted digits
     """
-    output_list = [0] * len(tuple_list)
+    digits_list = [0] * len(tuple_list)
     for index, tuple in enumerate(tuple_list):
-        digit = extractDigit(tuple[0], target_digit)
-        output_list[index] = (digit, tuple[1])
-    return output_list
+        digit = extractDigit(tuple[target_int], target_digit)
+        if not digit < 1:
+            digits_list[index] = digit
+    return digits_list
 
 
-def extractIntsFromTuples(tuple_list: list[tuple[int]], wanted_int: int) -> list[int]:
-    size = len(tuple_list)
-    wanted_ints_list = [0] * size
-    for index, tuple in enumerate(tuple_list):
-        wanted_ints_list[index] = tuple[(wanted_int - 1) % len(tuple)]
-
-    return wanted_ints_list
+def extractIntsFromTuples():
+    pass
 
 
-def countingSort(int_list: list[int], target_digit: int):
+def countingSort(tuple_list: list[tuple[int]], target_digit: int):
     """Sort an array of integers in ascending order based only on the target_digit
     Args:
         int_list (list[int]): array of integers
@@ -104,13 +90,13 @@ def countingSort(int_list: list[int], target_digit: int):
         list[int]: sorted version of int_list, in ascending order
     """
     count_array = generateCountArray(
-        createLinkedDigitList(int_list, target_digit), cumulative=True
+        createDigitList(tuple_list, target_digit), cumulative=True
     )
-    size = len(int_list)
+    size = len(tuple_list)
     sorted_array = [0] * size
     i = size - 1
     while i >= 0:
-        integer = int_list[i]
+        integer = tuple_list[i]
         digit = extractDigit(integer, target_digit)
         new_index = count_array[digit]
         sorted_array[new_index - 1] = integer
@@ -150,7 +136,8 @@ if __name__ == "__main__":
         (99, 97, 99),
         (97, 98, 0),
     ]
-    print(extractIntsFromTuples(tuple_list, 1) == [98, 98, 99, 0, 99, 99, 97])
-    f_id_tuple = IDTupleList(extractIntsFromTuples(tuple_list, 1))
-    s_id_tuple = IDTupleList(extractIntsFromTuples(tuple_list, 2))
-    t_id_tuple = IDTupleList(extractIntsFromTuples(tuple_list, 3))
+    print(createDigitList(tuple_list, 0, 1) == [8, 8, 9, 0, 9, 9, 7])  # OK
+    print(
+        generateCountArray([8, 8, 9, 0, 9, 9, 7], cumulative=True)
+        == [1, 1, 1, 1, 1, 1, 1, 2, 4, 7]
+    )  # OK
