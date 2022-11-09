@@ -77,8 +77,11 @@ def createDigitList(
     return digits_list
 
 
-def extractIntsFromTuples():
-    pass
+def findMaxElementTupleList(tuple_list: list[tuple[int]]):
+    max_elem = 0
+    for tuple in tuple_list:
+        max_elem = max(max_elem, max(tuple))
+    return max_elem
 
 
 def countingSort(tuple_list: list[tuple[int]], target_digit: int):
@@ -107,7 +110,7 @@ def countingSort(tuple_list: list[tuple[int]], target_digit: int):
         return sorted_array
 
 
-def radixSort(int_list: list[int]) -> None:
+def radixSort(tuple_list: list[tuple[int]]) -> None:
     """Sort an array of integers in ascending order.
 
     Args:
@@ -116,10 +119,10 @@ def radixSort(int_list: list[int]) -> None:
     Returns:
         _type_: sorted version of int_list, in ascending order
     """
-    nb_loops = getDigitsNumber(max(int_list))
+    nb_loops = getDigitsNumber(max(tuple_list))
     for target_digit in range(1, nb_loops + 1):
-        sorted_list = countingSort(int_list, target_digit)
-        int_list = sorted_list
+        sorted_list = countingSort(tuple_list, target_digit)
+        tuple_list = sorted_list
     return sorted_list
 
 
@@ -127,7 +130,7 @@ if __name__ == "__main__":
     ##############
     # UNIT TESTS #
     ##############
-    large_test = [random.randint(0, 5000) for i in range(500000)]
+    large_tuple_list = [random.randint(0, 5000) for i in range(500000)]
     # cProfile.run("radixSort(large_test)")
     tuple_list = [
         (98, 99, 97),
@@ -138,12 +141,12 @@ if __name__ == "__main__":
         (99, 97, 99),
         (97, 98, 0),
     ]
+    print(findMaxElementTupleList([(0, 66, 89), (51, 23, 18)]) == 89)  # OK
     print(createDigitList(tuple_list, 0, 1) == [8, 8, 9, 0, 9, 9, 7])  # OK
     print(
         generateCountArray([8, 8, 9, 0, 9, 9, 7], cumulative=True)
         == [1, 1, 1, 1, 1, 1, 1, 2, 4, 7]
     )  # OK
-    tl_sort_fst_digit = countingSort(tuple_list, 1)
     print(
         countingSort(countingSort(tuple_list, 1), 2)
         == [
