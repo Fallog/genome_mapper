@@ -57,7 +57,7 @@ def extractDigit(integer: int, target_digit: int) -> int:
 
 
 def createDigitList(
-    tuple_list: list[tuple[int]], target_int: int, target_digit: int
+    tuple_list: list[tuple[int]], tuple_index: int, target_digit: int
 ) -> list[int]:
     """Extract the target_digit in a list of integers
 
@@ -71,7 +71,7 @@ def createDigitList(
     """
     digits_list = [0] * len(tuple_list)
     for index, tuple in enumerate(tuple_list):
-        digit = extractDigit(tuple[target_int], target_digit)
+        digit = extractDigit(tuple[tuple_index], target_digit)
         if not digit < 1:
             digits_list[index] = digit
     return digits_list
@@ -89,20 +89,22 @@ def countingSort(tuple_list: list[tuple[int]], target_digit: int):
     Returns:
         list[int]: sorted version of int_list, in ascending order
     """
-    count_array = generateCountArray(
-        createDigitList(tuple_list, target_digit), cumulative=True
-    )
-    size = len(tuple_list)
-    sorted_array = [0] * size
-    i = size - 1
-    while i >= 0:
-        integer = tuple_list[i]
-        digit = extractDigit(integer, target_digit)
-        new_index = count_array[digit]
-        sorted_array[new_index - 1] = integer
-        count_array[digit] -= 1
-        i -= 1
-    return sorted_array
+    tuple_size = len(tuple_list[0])
+    for tuple_index in range(tuple_size):
+        count_array = generateCountArray(
+            createDigitList(tuple_list, tuple_index, target_digit), cumulative=True
+        )
+        size = len(tuple_list)
+        sorted_array = [0] * size
+        i = size - 1
+        while i >= 0:
+            integer = tuple_list[i][tuple_index]
+            digit = extractDigit(integer, target_digit)
+            new_index = count_array[digit]
+            sorted_array[new_index - 1] = tuple_list[i]
+            count_array[digit] -= 1
+            i -= 1
+        return sorted_array
 
 
 def radixSort(int_list: list[int]) -> None:
@@ -140,4 +142,17 @@ if __name__ == "__main__":
     print(
         generateCountArray([8, 8, 9, 0, 9, 9, 7], cumulative=True)
         == [1, 1, 1, 1, 1, 1, 1, 2, 4, 7]
+    )  # OK
+    tl_sort_fst_digit = countingSort(tuple_list, 1)
+    print(
+        countingSort(countingSort(tuple_list, 1), 2)
+        == [
+            (0, 0, 0),
+            (97, 98, 0),
+            (98, 99, 97),
+            (98, 99, 97),
+            (99, 97, 98),
+            (99, 97, 98),
+            (99, 97, 99),
+        ]
     )  # OK
