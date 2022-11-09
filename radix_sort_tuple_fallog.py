@@ -2,8 +2,7 @@
 # IMPORTS #
 ###########
 import math
-
-# import cProfile
+import cProfile
 import random
 
 
@@ -80,7 +79,9 @@ def createDigitList(
 def findMaxElementTupleList(tuple_list: list[tuple[int]]):
     max_elem = 0
     for tuple in tuple_list:
-        max_elem = max(max_elem, max(tuple))
+        max_in_tuple = max(tuple)
+        if max_in_tuple > max_elem:
+            max_elem = max_in_tuple
     return max_elem
 
 
@@ -130,8 +131,6 @@ if __name__ == "__main__":
     ##############
     # UNIT TESTS #
     ##############
-    large_tuple_list = [random.randint(0, 5000) for i in range(500000)]
-    # cProfile.run("radixSort(large_test)")
     tuple_list = [
         (98, 99, 97),
         (98, 99, 97),
@@ -159,3 +158,9 @@ if __name__ == "__main__":
             (99, 97, 99),
         ]
     )  # OK
+    random.seed(14)
+    large_tuple_list = [
+        (random.randint(0, 5000), random.randint(0, 5000), random.randint(0, 5000))
+        for i in range(5000000)
+    ]
+    cProfile.run("findMaxElementTupleList(large_tuple_list)")
