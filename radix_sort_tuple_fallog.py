@@ -120,7 +120,7 @@ def radixSort(tuple_list: list[tuple[int]]) -> None:
     Returns:
         _type_: sorted version of int_list, in ascending order
     """
-    nb_loops = getDigitsNumber(max(tuple_list))
+    nb_loops = getDigitsNumber(findMaxElementTupleList(tuple_list))
     for target_digit in range(1, nb_loops + 1):
         sorted_list = countingSort(tuple_list, target_digit)
         tuple_list = sorted_list
@@ -158,6 +158,19 @@ if __name__ == "__main__":
             (99, 97, 99),
         ]
     )  # OK
+    print(
+        radixSort(tuple_list)
+        == [
+            (0, 0, 0),
+            (97, 98, 0),
+            (98, 99, 97),
+            (98, 99, 97),
+            (99, 97, 98),
+            (99, 97, 98),
+            (99, 97, 99),
+        ]
+    )  # OK
+
     random.seed(14)
     large_tuple_list = [
         (random.randint(0, 5000), random.randint(0, 5000), random.randint(0, 5000))
