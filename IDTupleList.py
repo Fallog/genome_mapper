@@ -4,10 +4,12 @@ from IDTuple import IDTuple
 class IDTupleList:
     size: int
     id_tuple_list = [IDTuple]
+    int_list: list[int]
 
     def __init__(self, int_list: list[int]) -> None:
         self.size = len(int_list)
         self.id_tuple_list = [0] * self.size
+        self.int_list = int_list
         for index, integer in enumerate(int_list):
             self.id_tuple_list[index] = IDTuple(integer, index)
 
@@ -28,6 +30,14 @@ class IDTupleList:
             target_int
         )
 
+    def extractDigits(self, target_digit: int) -> int:
+        digits_list = [0] * self.size
+        for index, integer in enumerate(self.int_list):
+            digit = (integer // 10 ** (target_digit - 1)) % 10
+            if not digit < 1:
+                digits_list[index] = digit
+        return digits_list
+
 
 if __name__ == "__main__":
     int_list = [
@@ -43,3 +53,4 @@ if __name__ == "__main__":
     print(id_t_list)  # OK
     print(id_t_list.max() == 99)  # OK
     print(id_t_list.count(99) == 3)  # OK
+    print(id_t_list.extractDigits(1) == [8, 8, 9, 0, 9, 9, 7])  # OK
