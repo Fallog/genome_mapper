@@ -58,15 +58,16 @@ def extractDigit(integer: int, target_digit: int) -> int:
 def createDigitList(
     tuple_list: list[tuple[tuple, int]], tuple_index: int, target_digit: int
 ) -> list[int]:
-    """Extract the target_digit in a list of integers
+    """Creates a list of all the target_digit in a list of tuples
 
     Args:
-        tuple_list (list[tuple[int]]): list of triplets
+        tuple_list (list[tuple[int]]): each tuple of this list consists in a tuple of triplet plus an integer
+        corresponding to the triplet order in the array.
         target_digit (int): position of the extracted digit, 1 refering to the unit digit in the integer,
         2 for the tens, 3 for hundreds etc.
 
     Returns:
-        list[int]: every extracted digits
+        list[int]: list of all the targetted digit of the triplet in tuple_list
     """
     digits_list = [0] * len(tuple_list)
     for index, tuple in enumerate(tuple_list):
@@ -76,7 +77,16 @@ def createDigitList(
     return digits_list
 
 
-def findMaxElementTupleList(tuple_list: list[tuple[tuple, int]]):
+def findMaxElementTupleList(tuple_list: list[tuple[tuple, int]]) -> int:
+    """Returns the greatest element of an array of tuple.
+
+    Args:
+        tuple_list (list[tuple[tuple, int]]): each tuple of this list consists in a tuple of triplet plus an integer
+        corresponding to the triplet order in the array.
+
+    Returns:
+        int: the greatest integers stored in tuple_list
+    """
     max_elem = 0
     for tuple in tuple_list:
         max_in_tuple = max(tuple[0])
@@ -88,12 +98,17 @@ def findMaxElementTupleList(tuple_list: list[tuple[tuple, int]]):
 def countingSort(
     tuple_list: list[tuple[tuple, int]], target_digit: int
 ) -> list[tuple[tuple, int]]:
-    """Sort an array of integers in ascending order based only on the target_digit
+    """Sort an array of tuple in ascending order.
+    The sort is done for a specific digit of the integers in the tuples.
+
     Args:
-        int_list (list[int]): array of integers
+        tuple_list (list[tuple[tuple, int]]): each tuple of this list consists in a tuple of triplet plus an integer
+        corresponding to the triplet order in the array.
+        target_digit (int): position of the digit used for sorting the integers, 1 refering to the unit digit of the integer,
+        2 for the tens, 3 for hundreds etc.
 
     Returns:
-        list[int]: sorted version of int_list, in ascending order
+        list[tuple[tuple, int]]: sorted version of tuple_list, in ascending order
     """
     tuple_size = len(tuple_list[0][0])
     for tuple_index in range(tuple_size):
@@ -115,13 +130,14 @@ def countingSort(
 
 
 def radixSort(tuple_list: list[tuple[tuple, int]]) -> list[tuple[tuple, int]]:
-    """Sort an array of integers in ascending order.
+    """Sort an array of tuple in ascending order.
 
     Args:
-        int_list (list[int]): array of integers
+        tuple_list (list[tuple[tuple, int]]): each tuple of this list consists in a tuple of triplet plus an integer
+        corresponding to the triplet order in the array.
 
     Returns:
-        _type_: sorted version of int_list, in ascending order
+        list[tuple[tuple, int]]: sorted version of tuple_list, in ascending order
     """
     nb_loops = getDigitsNumber(findMaxElementTupleList(tuple_list))
     for target_digit in range(1, nb_loops + 1):
