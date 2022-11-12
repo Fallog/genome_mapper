@@ -51,7 +51,7 @@ def getPositionTable(input_list: list[int]) -> list[int]:
     return P1 + P2
 
 
-def getTripletList(
+def getOrderedTripletList(
     input_list: list[int], position_table: list[int]
 ) -> list[tuple[tuple, int]]:
     pos_size = len(position_table)
@@ -69,6 +69,25 @@ def getTripletList(
     return triplet_list
 
 
+def getTripletList(ordered_triplet_list: list[tuple[tuple, int]]) -> list[tuple]:
+    triplet_list = [0] * len(ordered_triplet_list)
+    for index, order_tuple in enumerate(ordered_triplet_list):
+        triplet_list[index] = order_tuple[0]
+    return triplet_list
+
+
+def createNewIntTable(
+    triplet_list: list[tuple[tuple, int]], triplet_list_ordered: list[tuple[tuple, int]]
+) -> list[int]:
+    size = len(triplet_list)
+    triplet_list_unordered = getTripletList(triplet_list_ordered)
+    new_int_table = [0] * size
+    for i in range(size):
+        new_int = triplet_list_unordered.index(triplet_list[i][0])
+        new_int_table[i] = triplet_list_ordered[new_int][1]
+    return new_int_table
+
+
 if __name__ == "__main__":
     test_seq = "ATTAGCAGCC"
     print("Length of the sequence: ", len(test_seq))
@@ -81,7 +100,7 @@ if __name__ == "__main__":
     pos_table = getPositionTable(seq_int)
     print(pos_table == [1, 4, 7, 10, 2, 5, 8])  # OK
 
-    triplet_list = getTripletList(seq_int, pos_table)
+    triplet_list = getOrderedTripletList(seq_int, pos_table)
     print(
         triplet_list
         == [
@@ -94,4 +113,20 @@ if __name__ == "__main__":
             ((2, 2, 0), 1),
         ]
     )  # OK
-    # sorted_triplet_list = radixSort(triplet_list)
+    print(
+        getTripletList(triplet_list)
+        == [
+            (4, 4, 1),
+            (3, 2, 1),
+            (3, 2, 2),
+            (0, 0, 0),
+            (4, 1, 3),
+            (2, 1, 3),
+            (2, 2, 0),
+        ]
+    )  # OK
+    sorted_triplet_list = radixSort(triplet_list)
+    print(sorted_triplet_list)
+    print(
+        createNewIntTable(triplet_list, sorted_triplet_list) == [6, 4, 5, 1, 7, 2, 3]
+    )  # OK
