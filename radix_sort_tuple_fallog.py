@@ -56,12 +56,14 @@ def extractDigit(integer: int, target_digit: int) -> int:
 
 
 def createDigitList(
-    tuple_list: list[tuple[tuple, int]], tuple_index: int, target_digit: int
+    tuple_list: list[tuple[tuple[int, int, int], int]],
+    tuple_index: int,
+    target_digit: int,
 ) -> list[int]:
     """Creates a list of all the target_digit in a list of tuples
 
     Args:
-        tuple_list (list[tuple[int]]): each tuple of this list consists in a tuple of triplet plus an integer
+        tuple_list (list[tuple[tuple[int, int, int], int]]): each tuple of this list consists in a tuple of triplet plus an integer
         corresponding to the triplet order in the array.
         target_digit (int): position of the extracted digit, 1 refering to the unit digit in the integer,
         2 for the tens, 3 for hundreds etc.
@@ -77,11 +79,11 @@ def createDigitList(
     return digits_list
 
 
-def findMaxElementTupleList(tuple_list: list[tuple[tuple, int]]) -> int:
+def findMaxElementTupleList(tuple_list: list[tuple[tuple[int, int, int], int]]) -> int:
     """Returns the greatest element of an array of tuple.
 
     Args:
-        tuple_list (list[tuple[tuple, int]]): each tuple of this list consists in a tuple of triplet plus an integer
+        tuple_list (list[tuple[tuple[int, int, int], int]]): each tuple of this list consists in a tuple of triplet plus an integer
         corresponding to the triplet order in the array.
 
     Returns:
@@ -96,13 +98,13 @@ def findMaxElementTupleList(tuple_list: list[tuple[tuple, int]]) -> int:
 
 
 def countingSort(
-    tuple_list: list[tuple[tuple, int]], target_digit: int
+    tuple_list: list[tuple[tuple[int, int, int], int]], target_digit: int
 ) -> list[tuple[tuple, int]]:
     """Sort an array of tuple in ascending order.
     The sort is done for a specific digit of the integers in the tuples.
 
     Args:
-        tuple_list (list[tuple[tuple, int]]): each tuple of this list consists in a tuple of triplet plus an integer
+        tuple_list (list[tuple[tuple[int,int,int], int]]): each tuple of this list consists in a tuple of triplet plus an integer
         corresponding to the triplet order in the array.
         target_digit (int): position of the digit used for sorting the integers, 1 refering to the unit digit of the integer,
         2 for the tens, 3 for hundreds etc.
@@ -123,7 +125,7 @@ def countingSort(
             integer = actual_tuple[tuple_index]
             digit = extractDigit(integer, target_digit)
             new_index = count_array[digit]
-            sorted_array[new_index - 1] = (actual_tuple, new_index)
+            sorted_array[new_index - 1] = (actual_tuple, tuple_list[i][1])
             count_array[digit] -= 1
             i -= 1
         return sorted_array
@@ -143,18 +145,7 @@ def radixSort(tuple_list: list[tuple[tuple, int]]) -> list[tuple[tuple, int]]:
     for target_digit in range(1, nb_loops + 1):
         sorted_list = countingSort(tuple_list, target_digit)
         tuple_list = sorted_list
-    orderTupleList(tuple_list)
     return sorted_list
-
-
-def orderTupleList(tuple_list: list[tuple[tuple, int]]):
-    for i in range(1, len(tuple_list)):
-        parsed_tuple = tuple_list[i][0]
-        previous_tuple = tuple_list[i - 1][0]
-        if parsed_tuple == previous_tuple:
-            tuple_list[i] = (parsed_tuple, tuple_list[i - 1][1])
-        else:
-            tuple_list[i] = (parsed_tuple, tuple_list[i - 1][1] + 1)
 
 
 if __name__ == "__main__":
@@ -180,24 +171,25 @@ if __name__ == "__main__":
         countingSort(countingSort(tuple_list, 1), 2)
         == [
             ((0, 0, 0), 1),
-            ((97, 98, 0), 2),
-            ((98, 99, 97), 3),
-            ((98, 99, 97), 4),
-            ((99, 97, 98), 5),
-            ((99, 97, 98), 6),
-            ((99, 97, 99), 7),
+            ((97, 98, 0), 1),
+            ((98, 99, 97), 1),
+            ((98, 99, 97), 1),
+            ((99, 97, 98), 1),
+            ((99, 97, 98), 1),
+            ((99, 97, 99), 1),
         ]
     )  # OK
+    sorted_tuple_list = radixSort(tuple_list)
     print(
-        radixSort(tuple_list)
+        radixSort(sorted_tuple_list)
         == [
             ((0, 0, 0), 1),
-            ((97, 98, 0), 2),
-            ((98, 99, 97), 3),
-            ((98, 99, 97), 3),
-            ((99, 97, 98), 4),
-            ((99, 97, 98), 4),
-            ((99, 97, 99), 5),
+            ((97, 98, 0), 1),
+            ((98, 99, 97), 1),
+            ((98, 99, 97), 1),
+            ((99, 97, 98), 1),
+            ((99, 97, 98), 1),
+            ((99, 97, 99), 1),
         ]
     )  # OK
 
