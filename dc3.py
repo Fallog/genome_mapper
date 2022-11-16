@@ -127,7 +127,8 @@ def get_orders(sorted_tuple_list: list[tuple[tuple[int, int, int], int]]) -> lis
         list[int]: sorted positions of the triplets
     """
     size = len(tuple_list)  # performance
-    order_table = [1] * size  # element 0 have order 1 and the for loop start to 1
+    # element 0 have order 1 and the for loop start to 1
+    order_table = [1] * size
 
     for i in range(1, size):
         parsed_tuple = sorted_tuple_list[i][0]  # selecting the tuple
@@ -169,11 +170,28 @@ def get_pairs_index(
         pairs_table[i] = (
             (
                 int_sequence[position],
-                index_table[int_sequence[position + 1] - 1] if i != size - 1 else 1,
+                index_table[int_sequence[position + 1]
+                            - 1] if i != size - 1 else 1,
             ),
             position,
         )
     return pairs_table
+
+
+def merge_index_tables(
+    int_seq: list[int], index12_table: list[int], index0_table: list[int]
+) -> list[int]:
+    size12, size0 = len(index12_table), len(index0_table)  # performance
+    index_table_merged = [0] * (size12 + size0)
+    index12, index0 = 0, 0
+    while index12 < size12 and index0 < size12:
+        # Next 2 lines are used for better readability & performance
+        int12 = int_seq[index12_table[index12]]
+        int0 = int_seq[index0_table[index0]]
+        if int12 == int0:
+            pass
+        else:
+            index_table_merged[index12 + index0] = max(int12, int0)
 
 
 def dc3(int_sequence: list[int]):
@@ -258,4 +276,8 @@ if __name__ == "__main__":
         position_table=[0, 3, 6],
         index_table=[7, 1, 2, 4, 5],
     )
-    print(pairs_table == [((3, 2), 0), ((1, 4), 3), ((2, 1), 6)])
+    print(pairs_table == [((3, 2), 0), ((1, 4), 3), ((2, 1), 6)])  # OK
+
+    sort_pairs_table = radix_sort(pairs_table)
+    index0 = get_indexes(sort_pairs_table)
+    print(sort_pairs_table, index0)
