@@ -1,6 +1,6 @@
 # import cProfile
 # import random
-from radixsort import radixSort
+from radixsort import radix_sort
 
 
 def convert_dna_to_int(dna_seq: str) -> list[int]:
@@ -161,7 +161,7 @@ def create_next_list(
 
 def get_pairs_index(
     int_sequence: list[int], position_table: list[int], index_table: list[int]
-) -> list[tuple[int, int]]:
+) -> list[tuple[tuple[int, int], int]]:
     size = len(position_table)  # performance
     pairs_table = [0] * size  # performance
     for i in range(size):
@@ -169,7 +169,7 @@ def get_pairs_index(
         pairs_table[i] = (
             (
                 int_sequence[position],
-                index_table[int_sequence[position + 1] - 1],
+                index_table[int_sequence[position + 1] - 1] if i != size - 1 else 1,
             ),
             position,
         )
@@ -222,7 +222,7 @@ if __name__ == "__main__":
         ]
     )  # OK
 
-    sorted_triplet_list = radixSort(tuple_list)
+    sorted_triplet_list = radix_sort(tuple_list)
     print(
         sorted_triplet_list
         == [
@@ -258,4 +258,4 @@ if __name__ == "__main__":
         position_table=[0, 3, 6],
         index_table=[7, 1, 2, 4, 5],
     )
-    print(pairs_table)  # == [((3, 2), 0), ((1, 4), 3), ((2, 1), 6)])
+    print(pairs_table == [((3, 2), 0), ((1, 4), 3), ((2, 1), 6)])
