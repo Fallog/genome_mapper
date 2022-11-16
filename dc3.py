@@ -1,9 +1,9 @@
 # import cProfile
 # import random
-from radix_sort_tuple_fallog import radixSort
+from radixsort import radixSort
 
 
-def dnaSeqToIntTable(dna_seq: str) -> list[int]:
+def convert_dna_to_int(dna_seq: str) -> list[int]:
     """Convert a string of character into a list of integers representing each character.
     Because the strings are DNA sequence, the conversion is made with a dictionary mapping each nucleotide with a number.
     A -> 1 ; C -> 2 ; G -> 3 ; T -> 4
@@ -15,14 +15,15 @@ def dnaSeqToIntTable(dna_seq: str) -> list[int]:
     Returns:
         list[int]: representation of dna_seq with an array of integers
     """
+    # DNA dictionary faster then ascii conversion
     dna_dict = {"A": 1, "C": 2, "G": 3, "T": 4}
-    int_array = [0] * len(dna_seq)
+    int_array = [0] * len(dna_seq)  # performance
     for index, nucleotide in enumerate(dna_seq):
         int_array[index] = dna_dict[nucleotide]
     return int_array
 
 
-def appendSentinelNumbers(input_list: list[int]) -> list:
+def add_sentinel_numbers(input_list: list[int]) -> list:
     """Returns input_list with three 0 appended at the end of the list.
 
     Args:
@@ -34,24 +35,25 @@ def appendSentinelNumbers(input_list: list[int]) -> list:
     return input_list + [0, 0, 0]
 
 
-def getPositionTable(input_list: list[int]) -> list[int]:
-    """Returns the concatenation of an array containing indexes i of input_list that satisfy i % 3 = 1 and
-    another array containing indexes satisfying i % 3 = 2. Also i + 2 < len(input_list).
+def get_position_table(input_list: list[int], wanted_position: int) -> list[int]:
+    """Returns an array containing indexes i of input_list argument that satisfy i % 3 = wanted_position and
+    also i + 2 < len(input_list).
 
     Args:
-        input_list (list[int]): an array of integers
+        input_list (list[int]): array of integers
+        wanted_position (int): either 0, 1 or 2. Defines the indexes of input_list that will be put in the returned list
 
     Returns:
-        list[int]: concatenation of 2 arrays, one containing indexes i of input_list such that i % 3 = 1 and another
-        such that i % 3 = 2.
+        list[int]: contains indexes i of input_list such that i % 3 = wanted_position.
     """
-    size = len(input_list)
-    P1 = [i for i in range(size) if i % 3 == 1 and i + 2 < size]
-    P2 = [i for i in range(size) if i % 3 == 2 and i + 2 < size]
-    return P1 + P2
+    size = len(input_list)  # performance
+    # Implementation with 2 if loop -> simpler and more straightforward.
+    return [i for i in range(size) if i % 3 == wanted_position and i + 2 < size]
+    # Possible to do it with range(wanted_position, size, 3) and if i + 2 < size.
+    # Both method's performance need to be tested
 
 
-def getTripletListIndexed(
+def get_triplet_index(
     input_list: list[int], position_table: list[int]
 ) -> list[tuple[tuple[int, int, int], int]]:
     """Returns a list of tuple made of a triplet plus its index in the position table.
@@ -61,16 +63,16 @@ def getTripletListIndexed(
 
     Args:
         input_list (list[int]): an array of integers
-        position_table (list[int]): array obtained by the getPositionTable function
+        position_table (list[int]): array obtained by the get_position_table function
 
     Returns:
         list[tuple[tuple[int, int, int], int]]: list of tuple where a tuple consists in a triplet and
     an integer representing the index from which the triplet is built
     """
-    pos_size = len(position_table)
-    triplet_list = [0] * pos_size
+    pos_size = len(position_table)  # performance
+    triplet_list = [0] * pos_size  # performance
     for i in range(pos_size):
-        position = position_table[i]
+        position = position_table[i]  # performance
         triplet_list[i] = (
             (
                 input_list[position],
@@ -82,7 +84,7 @@ def getTripletListIndexed(
     return triplet_list
 
 
-def getTripletList(
+def get_triplet(
     index_triplet_list: list[tuple[tuple, int]]
 ) -> list[tuple[int, int, int]]:
     """Returns a list of triplets, extracted from a list of tuple where a tuple consists in a triplet and
@@ -95,10 +97,11 @@ def getTripletList(
     Returns:
         list[tuple[int, int, int]]: list made of the triplets of ordered_triplet_list without the index
     """
+    # Intuitive and fast to implement
     return [index_triplet_list[i][0] for i in range(len(index_triplet_list))]
 
 
-def getIndexTable(triplet_list: list[tuple[tuple[int, int, int], int]]) -> list[int]:
+def get_indexes(triplet_list: list[tuple[tuple[int, int, int], int]]) -> list[int]:
     """Returns an array of integers built with the int inside the tuple of triplet_list.
     triplet_list is an array of ((int, int, int), int) and here it extracts the last int and put it in the returned list.
 
@@ -112,9 +115,7 @@ def getIndexTable(triplet_list: list[tuple[tuple[int, int, int], int]]) -> list[
     return [triplet_list[i][1] for i in range(len(triplet_list))]
 
 
-def getOrderTable(
-    sorted_tuple_list: list[tuple[tuple[int, int, int], int]]
-) -> list[int]:
+def get_orders(sorted_tuple_list: list[tuple[tuple[int, int, int], int]]) -> list[int]:
     """Returns the sorted position of each triplet in sorted_tuple_list.
     If two triplet are identical, their position is set equal.
 
@@ -125,11 +126,11 @@ def getOrderTable(
     Returns:
         list[int]: sorted positions of the triplets
     """
-    size = len(tuple_list)
-    order_table = [1] * size
+    size = len(tuple_list)  # performance
+    order_table = [1] * size  # element 0 have order 1 and the for loop start to 1
 
     for i in range(1, size):
-        parsed_tuple = sorted_tuple_list[i][0]
+        parsed_tuple = sorted_tuple_list[i][0]  # selecting the tuple
         previous_tuple = sorted_tuple_list[i - 1][0]
         if parsed_tuple == previous_tuple:
             order_table[i] = order_table[i - 1]
@@ -138,7 +139,7 @@ def getOrderTable(
     return order_table
 
 
-def createNextIntList(
+def create_next_list(
     index_table: list[int], index_table_sort: list[int], order_table: list[int]
 ) -> list[int]:
     """Returns an array made of the index + 1 in index_table_sort of each element of index_table.
@@ -151,30 +152,50 @@ def createNextIntList(
     Returns:
         list[int]:
     """
-    size = len(index_table)
-    next_int_list = [0] * size
+    size = len(index_table)  # performance
+    next_int_list = [0] * size  # performance
     for i in range(size):
         next_int_list[i] = order_table[index_table_sort.index(index_table[i])]
     return next_int_list
 
 
-def DC3(int_sequence: list[int]):
+def get_pairs_index(
+    int_sequence: list[int], position_table: list[int], index_table: list[int]
+) -> list[tuple[int, int]]:
+    size = len(position_table)  # performance
+    pairs_table = [0] * size  # performance
+    for i in range(size):
+        position = position_table[i]
+        pairs_table[i] = (
+            (
+                int_sequence[position],
+                index_table[int_sequence[position + 1] - 1],
+            ),
+            position,
+        )
+    return pairs_table
+
+
+def dc3(int_sequence: list[int]):
     pass
 
 
 if __name__ == "__main__":
     test_seq = "ATTAGCAGCC"
     print("Length of the sequence: ", len(test_seq))
-    seq_int = dnaSeqToIntTable(test_seq)
+    seq_int = convert_dna_to_int(test_seq)
     print(seq_int == [1, 4, 4, 1, 3, 2, 1, 3, 2, 2])  # OK
 
-    seq_int = appendSentinelNumbers(seq_int)
+    seq_int = add_sentinel_numbers(seq_int)
     print(seq_int == [1, 4, 4, 1, 3, 2, 1, 3, 2, 2, 0, 0, 0])  # OK
 
-    pos_table = getPositionTable(seq_int)
+    pos_table_1 = get_position_table(seq_int, wanted_position=1)
+    print(pos_table_1 == [1, 4, 7, 10])  # OK
+    pos_table_2 = get_position_table(seq_int, wanted_position=2)
+    pos_table = pos_table_1 + pos_table_2
     print(pos_table == [1, 4, 7, 10, 2, 5, 8])  # OK
 
-    tuple_list = getTripletListIndexed(seq_int, pos_table)
+    tuple_list = get_triplet_index(seq_int, pos_table)
     print(
         tuple_list
         == [
@@ -189,7 +210,7 @@ if __name__ == "__main__":
     )  # OK
 
     print(
-        getTripletList(tuple_list)
+        get_triplet(tuple_list)
         == [
             (4, 4, 1),
             (3, 2, 1),
@@ -215,16 +236,26 @@ if __name__ == "__main__":
         ]
     )
 
-    index_list = getIndexTable(tuple_list)
+    index_list = get_indexes(tuple_list)
     print(index_list == [1, 4, 7, 10, 2, 5, 8])  # OK
 
-    index_list_sorted = getIndexTable(sorted_triplet_list)
+    index_list_sorted = get_indexes(sorted_triplet_list)
     print(index_list_sorted == [10, 5, 8, 4, 7, 1, 2])  # OK
 
-    order_table = getOrderTable(sorted_triplet_list)
+    order_table = get_orders(sorted_triplet_list)
     print(order_table == [1, 2, 3, 4, 5, 6, 7])  # OK
 
-    print(
-        createNextIntList(index_list, index_list_sorted, order_table)
-        == [6, 4, 5, 1, 7, 2, 3]
-    )  # OK
+    next_int_list = add_sentinel_numbers(
+        create_next_list(index_list, index_list_sorted, order_table)
+    )
+    print(next_int_list == [6, 4, 5, 1, 7, 2, 3, 0, 0, 0])  # OK
+
+    next_pos_table_0 = get_position_table(next_int_list, wanted_position=0)
+    print(next_pos_table_0 == [0, 3, 6])  # OK
+
+    pairs_table = get_pairs_index(
+        int_sequence=[3, 3, 4, 1, 4, 5, 2, 0, 0, 0],
+        position_table=[0, 3, 6],
+        index_table=[7, 1, 2, 4, 5],
+    )
+    print(pairs_table)  # == [((3, 2), 0), ((1, 4), 3), ((2, 1), 6)])

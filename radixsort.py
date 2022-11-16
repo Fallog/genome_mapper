@@ -6,7 +6,7 @@ import cProfile
 import random
 
 
-def getDigitsNumber(integer: int) -> int:
+def get_digit_number(integer: int) -> int:
     """Computes the total number of digits of a given integer
 
     Args:
@@ -18,7 +18,9 @@ def getDigitsNumber(integer: int) -> int:
     return math.ceil(math.log10(integer))
 
 
-def generateCountArray(digits_list: list[tuple], cumulative: bool = False) -> list[int]:
+def generate_count_array(
+    digits_list: list[tuple], cumulative: bool = False
+) -> list[int]:
     """Computes an array containing the number of occurences of every digits in digits_list.
 
 
@@ -41,7 +43,7 @@ def generateCountArray(digits_list: list[tuple], cumulative: bool = False) -> li
     return count_array
 
 
-def extractDigit(integer: int, target_digit: int) -> int:
+def exctract_digit(integer: int, target_digit: int) -> int:
     """Extracts the target_digit in integer
 
     Args:
@@ -55,7 +57,7 @@ def extractDigit(integer: int, target_digit: int) -> int:
     return (integer // 10 ** (target_digit - 1)) % 10
 
 
-def createDigitList(
+def create_digit_list(
     tuple_list: list[tuple[tuple[int, int, int], int]],
     tuple_index: int,
     target_digit: int,
@@ -73,13 +75,13 @@ def createDigitList(
     """
     digits_list = [0] * len(tuple_list)
     for index, tuple in enumerate(tuple_list):
-        digit = extractDigit(tuple[0][tuple_index], target_digit)
+        digit = exctract_digit(tuple[0][tuple_index], target_digit)
         if not digit < 1:
             digits_list[index] = digit
     return digits_list
 
 
-def findMaxElementTupleList(tuple_list: list[tuple[tuple[int, int, int], int]]) -> int:
+def find_max_tuple_list(tuple_list: list[tuple[tuple[int, int, int], int]]) -> int:
     """Returns the greatest element of an array of tuple.
 
     Args:
@@ -97,7 +99,7 @@ def findMaxElementTupleList(tuple_list: list[tuple[tuple[int, int, int], int]]) 
     return max_elem
 
 
-def countingSort(
+def counting_sort(
     tuple_list: list[tuple[tuple[int, int, int], int]], target_digit: int
 ) -> list[tuple[tuple, int]]:
     """Sort an array of tuple in ascending order.
@@ -114,8 +116,8 @@ def countingSort(
     """
     tuple_size = len(tuple_list[0][0])
     for tuple_index in range(tuple_size):
-        count_array = generateCountArray(
-            createDigitList(tuple_list, tuple_index, target_digit), cumulative=True
+        count_array = generate_count_array(
+            create_digit_list(tuple_list, tuple_index, target_digit), cumulative=True
         )
         size = len(tuple_list)
         sorted_array = [((0, 0, 0), 0)] * size
@@ -123,7 +125,7 @@ def countingSort(
         while i >= 0:
             actual_tuple = tuple_list[i][0]
             integer = actual_tuple[tuple_index]
-            digit = extractDigit(integer, target_digit)
+            digit = exctract_digit(integer, target_digit)
             new_index = count_array[digit]
             sorted_array[new_index - 1] = (actual_tuple, tuple_list[i][1])
             count_array[digit] -= 1
@@ -131,7 +133,7 @@ def countingSort(
         return sorted_array
 
 
-def radixSort(tuple_list: list[tuple[tuple, int]]) -> list[tuple[tuple, int]]:
+def radix_sort(tuple_list: list[tuple[tuple, int]]) -> list[tuple[tuple, int]]:
     """Sort an array of tuple in ascending order.
 
     Args:
@@ -141,9 +143,9 @@ def radixSort(tuple_list: list[tuple[tuple, int]]) -> list[tuple[tuple, int]]:
     Returns:
         list[tuple[tuple, int]]: sorted version of tuple_list, in ascending order
     """
-    nb_loops = getDigitsNumber(findMaxElementTupleList(tuple_list))
+    nb_loops = get_digit_number(find_max_tuple_list(tuple_list))
     for target_digit in range(1, nb_loops + 1):
-        sorted_list = countingSort(tuple_list, target_digit)
+        sorted_list = counting_sort(tuple_list, target_digit)
         tuple_list = sorted_list
     return sorted_list
 
@@ -161,14 +163,14 @@ if __name__ == "__main__":
         ((99, 97, 99), 1),
         ((97, 98, 0), 1),
     ]
-    print(findMaxElementTupleList(tuple_list) == 99)  # OK
-    print(createDigitList(tuple_list, 0, 1) == [8, 8, 9, 0, 9, 9, 7])  # OK
+    print(find_max_tuple_list(tuple_list) == 99)  # OK
+    print(create_digit_list(tuple_list, 0, 1) == [8, 8, 9, 0, 9, 9, 7])  # OK
     print(
-        generateCountArray([8, 8, 9, 0, 9, 9, 7], cumulative=True)
+        generate_count_array([8, 8, 9, 0, 9, 9, 7], cumulative=True)
         == [1, 1, 1, 1, 1, 1, 1, 2, 4, 7]
     )  # OK
     print(
-        countingSort(countingSort(tuple_list, 1), 2)
+        counting_sort(counting_sort(tuple_list, 1), 2)
         == [
             ((0, 0, 0), 1),
             ((97, 98, 0), 1),
@@ -179,9 +181,9 @@ if __name__ == "__main__":
             ((99, 97, 99), 1),
         ]
     )  # OK
-    sorted_tuple_list = radixSort(tuple_list)
+    sorted_tuple_list = radix_sort(tuple_list)
     print(
-        radixSort(sorted_tuple_list)
+        radix_sort(sorted_tuple_list)
         == [
             ((0, 0, 0), 1),
             ((97, 98, 0), 1),
@@ -198,4 +200,4 @@ if __name__ == "__main__":
         ((random.randint(0, 5000), random.randint(0, 5000), random.randint(0, 5000)), 0)
         for i in range(5000000)
     ]
-    cProfile.run("radixSort(large_tuple_list)")
+    cProfile.run("radix_sort(large_tuple_list)")
