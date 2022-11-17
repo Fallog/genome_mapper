@@ -178,20 +178,55 @@ def get_pairs_index(
     return pairs_table
 
 
+def get_smallest_index(int_seq: list[int], index12: int, index0: int, nb_loop: int = 0) -> int:
+    """_summary_
+
+    Args:
+        int_seq (list[int]): _description_
+        index12 (int): _description_
+        index0 (int): _description_
+        nb_loop (int, optional): _description_. Defaults to 0.
+
+    Returns:
+        int: _description_
+    """
+    if int_seq[index12] == int_seq[index0]:
+        return get_smallest_index(int_seq, index12 + 1, index0 + 1, nb_loop + 1)
+    elif int_seq[index12] > int_seq[index0]:
+        return index0 - nb_loop
+    else:
+        return index12 - nb_loop
+
+
 def merge_index_tables(
     int_seq: list[int], index12_table: list[int], index0_table: list[int]
 ) -> list[int]:
-    size12, size0 = len(index12_table), len(index0_table)  # performance
-    index_table_merged = [0] * (size12 + size0)
-    index12, index0 = 0, 0
-    while index12 < size12 and index0 < size12:
-        # Next 2 lines are used for better readability & performance
-        int12 = int_seq[index12_table[index12]]
-        int0 = int_seq[index0_table[index0]]
-        if int12 == int0:
-            pass
+    """_summary_
+
+    Args:
+        int_seq (list[int]): _description_
+        index12_table (list[int]): _description_
+        index0_table (list[int]): _description_
+
+    Returns:
+        list[int]: _description_
+    """
+    size12, size0 = len(index12_table), len(index0_table)
+    index_table_merged = []  # because table is not filled in one loop
+    i, j = 0, 0  # one increment for each table i for
+    # The while loop stops when one of the increment went throug all its list
+    while i < size12 and j < size0:
+        # Next 2 lines are used for better readability
+        index12 = index12_table[i]
+        index0 = index0_table[j]
+        smallest_index = get_smallest_index(int_seq, index12, index0)
+        index_table_merged.append(smallest_index)
+        if smallest_index in index12_table:
+            i += 1
         else:
-            index_table_merged[index12 + index0] = max(int12, int0)
+            j += 1
+    # When the while loop stops, we add the remaining list to index_table_merged
+    return index_table_merged + index12_table[i:] + index0_table[j:]
 
 
 def dc3(int_sequence: list[int]):
@@ -281,3 +316,14 @@ if __name__ == "__main__":
     sort_pairs_table = radix_sort(pairs_table)
     index0 = get_indexes(sort_pairs_table)
     print(sort_pairs_table, index0)
+
+    print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 7, 3) == 7)  # OK
+    print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 1, 3) == 3)  # OK
+    print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 1, 0) == 0)  # OK
+    print(get_smallest_index(
+        [97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0], 8, 0) == 8)
+
+    print(merge_index_tables([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], [7, 1, 2, 4, 5], [3, 6, 0])
+          == [7, 3, 6, 0, 1, 2, 4, 5])  # OK
+    print(merge_index_tables([97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0],
+                             [10, 8, 1, 4, 7, 2, 5], [0, 3, 6, 9]) == [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5])  # OK
