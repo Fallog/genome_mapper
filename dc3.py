@@ -103,11 +103,13 @@ def get_triplet(
 
 def get_indexes(triplet_list: list[tuple[tuple[int, int, int], int]]) -> list[int]:
     """Returns an array of integers built with the int inside the tuple of triplet_list.
-    triplet_list is an array of ((int, int, int), int) and here it extracts the last int and put it in the returned list.
+    triplet_list is an array of ((int, int, int), int) and here it extracts the last
+    int and put it in the returned list.
 
     Args:
-        triplet_list (list[tuple[tuple[int, int, int], int]]): a tuple consists in a triplet and an integer representing
-        the index from which the triplet was built in the first place
+        triplet_list (list[tuple[tuple[int, int, int], int]]): a tuple consists in a
+            triplet and an integer representing the index from which the triplet was
+            built in the first place
 
     Returns:
         list[int]: indexes of the triplet in an sorted or unsorted triplet_list
@@ -120,13 +122,14 @@ def get_orders(sorted_tuple_list: list[tuple[tuple[int, int, int], int]]) -> lis
     If two triplet are identical, their position is set equal.
 
     Args:
-        sorted_tuple_list (list[tuple[tuple[int, int, int], int]]): a tuple consists in a triplet and an integer
-        representing the index from which the triplet was built in the first place
+        sorted_tuple_list (list[tuple[tuple[int, int, int], int]]): a tuple consists in
+            a triplet and an integer representing the index from which the triplet was
+            built in the first place
 
     Returns:
         list[int]: sorted positions of the triplets
     """
-    size = len(tuple_list)  # performance
+    size = len(tuple_list)  # performance & code compactness
     # element 0 have order 1 and the for loop start to 1
     order_table = [1] * size
 
@@ -143,17 +146,20 @@ def get_orders(sorted_tuple_list: list[tuple[tuple[int, int, int], int]]) -> lis
 def create_next_list(
     index_table: list[int], index_table_sort: list[int], order_table: list[int]
 ) -> list[int]:
-    """Returns an array made of the index + 1 in index_table_sort of each element of index_table.
+    """Returns an array made of the index + 1 in index_table_sort of each
+    element of index_table.
 
     Args:
-        index_table (list[int]): indexes of the triplet in an unsorted triplet_list
-        index_table_sort (list[int]): indexes of the triplet in a sorted triplet_list
+        index_table (list[int]): indexes of the triplets in an unsorted triplet_list
+        index_table_sort (list[int]): indexes of the same triplets in a sorted
+            triplet_list
         order_table (list[int]): orders of the triplet in a sorted triplet_list
 
     Returns:
-        list[int]:
+        list[int]: constructed from elements in order_table whose index are the
+            indexes of the elements of index_table in index_table_sort
     """
-    size = len(index_table)  # performance
+    size = len(index_table)  # performance & code compactness
     next_int_list = [0] * size  # performance
     for i in range(size):
         next_int_list[i] = order_table[index_table_sort.index(index_table[i])]
@@ -163,7 +169,20 @@ def create_next_list(
 def get_pairs_index(
     int_sequence: list[int], position_table: list[int], index_table: list[int]
 ) -> list[tuple[tuple[int, int], int]]:
-    size = len(position_table)  # performance
+    """Creates a list filled with tuple filled with a pair of integers and its
+    position given by the position arguments.
+    For each element p in the position table, we form a tuple looking like this :
+    ((int_sequence[p], index_table[int_sequence[p + 1]] - 1), p).
+
+    Args:
+        int_sequence (list[int]): array of integers
+        position_table (list[int]): array obtained with the get_position_table function
+        index_table (list[int]):
+
+    Returns:
+        list[tuple[tuple[int, int], int]]: tuple of pairs and their position
+    """
+    size = len(position_table)  # performance & code compactness
     pairs_table = [0] * size  # performance
     for i in range(size):
         position = position_table[i]
@@ -179,20 +198,25 @@ def get_pairs_index(
 
 
 def get_smallest_index(int_seq: list[int], index12: int, index0: int, nb_loop: int = 0) -> int:
-    """_summary_
+    """Returns the index refering to the smallest integer in int_seq argument.
+    If index12 and index0 arguments refer to equal integers in int_seq, then the function uses
+    recursion to compare index12 + 1 and index0 + 1 etc.
 
     Args:
-        int_seq (list[int]): _description_
-        index12 (int): _description_
-        index0 (int): _description_
-        nb_loop (int, optional): _description_. Defaults to 0.
+        int_seq (list[int]): array of integers
+        index12 (int): element of the index12 table
+        index0 (int): element of the index0 table
+        nb_loop (int, optional): indicates the number of get_smallest_index function already parsed
+            in the recursion. It is used to compensate the + 1 due to the recursion. Defaults to 0.
 
     Returns:
-        int: _description_
+        int: index refering to the smallest integer in int_seq between index12 and index0 arguments
     """
-    if int_seq[index12] == int_seq[index0]:
+    # Next line for code readabilty and code compactness
+    int12, int0 = int_seq[index12], int_seq[index0]
+    if int12 == int0:
         return get_smallest_index(int_seq, index12 + 1, index0 + 1, nb_loop + 1)
-    elif int_seq[index12] > int_seq[index0]:
+    elif int12 > int0:
         return index0 - nb_loop
     else:
         return index12 - nb_loop
@@ -201,15 +225,17 @@ def get_smallest_index(int_seq: list[int], index12: int, index0: int, nb_loop: i
 def merge_index_tables(
     int_seq: list[int], index12_table: list[int], index0_table: list[int]
 ) -> list[int]:
-    """_summary_
+    """Returns an array made with the fusion of index12 and index0_table arguments.
 
     Args:
-        int_seq (list[int]): _description_
-        index12_table (list[int]): _description_
-        index0_table (list[int]): _description_
+        int_seq (list[int]): array of integers
+        index12_table (list[int]): array made of the indexes i of a sorted triplets/pairs list
+            such that i % 3 = 1 or 2
+        index0_table (list[int]): array made of the indexes i of a sorted triplets/pairs list
+            such that i % 3 = 0
 
     Returns:
-        list[int]: _description_
+        list[int]: fusion of index12_table and index0_table
     """
     size12, size0 = len(index12_table), len(index0_table)
     index_table_merged = []  # because table is not filled in one loop
@@ -321,7 +347,7 @@ if __name__ == "__main__":
     print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 1, 3) == 3)  # OK
     print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 1, 0) == 0)  # OK
     print(get_smallest_index(
-        [97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0], 8, 0) == 8)
+        [97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0], 8, 0) == 8)  # OK
 
     print(merge_index_tables([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], [7, 1, 2, 4, 5], [3, 6, 0])
           == [7, 3, 6, 0, 1, 2, 4, 5])  # OK
