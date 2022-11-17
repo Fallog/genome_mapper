@@ -197,6 +197,21 @@ def get_pairs_index(
     return pairs_table
 
 
+def remove_sentinel_index(merged_index_table: list[int]) -> list[int]:
+    """Returns merged_index_table argument but without it's first element.
+    Because its first element is always the one associated with the sentinel number,
+    (because the sentinel number has the smallest order), the function remove the index
+    associated to the sentinel number element.
+
+    Args:
+        merged_index_table (list[int]): array from merge_index_table function
+
+    Returns:
+        list[int]: merged_index_table but without its first element
+    """
+    return merged_index_table[1:]
+
+
 def get_smallest_index(int_seq: list[int], index12: int, index0: int, nb_loop: int = 0) -> int:
     """Returns the index refering to the smallest integer in int_seq argument.
     If index12 and index0 arguments refer to equal integers in int_seq, then the function uses
@@ -272,8 +287,19 @@ def is_repeated_elem(int_seq: list[int]) -> bool:
     return False
 
 
-def dc3(int_sequence: list[int]):
-    pass
+def dc3(str_seq: list[int]):
+    int_seq = add_sentinel_numbers(convert_dna_to_int(str_seq))
+    P12 = get_position_table(int_seq, 1) + get_position_table(int_seq, 2)
+    R12 = get_triplet_index(int_seq, P12)
+    index12_unsorted = get_indexes(R12)
+    R12_sorted = radix_sort(R12)
+    index12 = get_indexes(R12_sorted)
+    order12 = get_orders(R12_sorted)
+    suffix_table = remove_sentinel_index(
+        create_next_list(index12_unsorted, index12, order12))
+    if is_repeated_elem(suffix_table[:-3]):  # avoid sentinel elements
+        index12 = dc3(suffix_table)
+    P0 = get_position_table(int_seq, 0)
 
 
 if __name__ == "__main__":
