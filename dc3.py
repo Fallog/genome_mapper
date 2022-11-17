@@ -255,6 +255,23 @@ def merge_index_tables(
     return index_table_merged + index12_table[i:] + index0_table[j:]
 
 
+def is_repeated_elem(int_seq: list[int]) -> bool:
+    """Returns True if the int_seq argument contains duplicated integers.
+    Otherwise False.
+
+    Args:
+        int_seq (list[int]): array of integers
+
+    Returns:
+        bool: True if at least one element of int_seq is present at least two times.
+            False otherwise
+    """
+    for i in range(len(int_seq) - 1):
+        if int_seq[i + 1:].count(int_seq[i]) > 0:
+            return True
+    return False
+
+
 def dc3(int_sequence: list[int]):
     pass
 
@@ -353,3 +370,6 @@ if __name__ == "__main__":
           == [7, 3, 6, 0, 1, 2, 4, 5])  # OK
     print(merge_index_tables([97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0],
                              [10, 8, 1, 4, 7, 2, 5], [0, 3, 6, 9]) == [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5])  # OK
+
+    print(is_repeated_elem([6, 4, 5, 1, 7, 2, 3]) is False)  # OK
+    print(is_repeated_elem([3, 3, 4, 1, 4, 5, 2]) is True)  # OK
