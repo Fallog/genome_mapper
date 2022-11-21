@@ -3,10 +3,25 @@
 from radixsort import radix_sort
 
 
+def str_to_ascii(input_string: str) -> list[int]:
+    """Convert a string of character into a list of integers representing each character in its ascii code
+
+    Args:
+        input_string (str): sequence of characters
+
+    Returns:
+        list[int]: list of the character's ascii code
+    """
+    ascii_table = [0] * len(input_string)
+    for index, char in enumerate(input_string):
+        ascii_table[index] = ord(char)
+    return ascii_table
+
+
 def convert_dna_to_int(dna_seq: str) -> list[int]:
     """Convert a string of character into a list of integers representing each character.
-    Because the strings are DNA sequence, the conversion is made with a dictionary mapping each nucleotide with a number.
-    A -> 1 ; C -> 2 ; G -> 3 ; T -> 4
+    Because the strings are DNA sequence, the conversion is made with a dictionary 
+    mapping each nucleotide with a number. A -> 1 ; C -> 2 ; G -> 3 ; T -> 4
     The chosen number respect the order of this 4 letters in the alphabet.
 
     Args:
@@ -36,12 +51,13 @@ def add_sentinel_numbers(input_list: list[int]) -> list:
 
 
 def get_position_table(input_list: list[int], wanted_position: int) -> list[int]:
-    """Returns an array containing indexes i of input_list argument that satisfy i % 3 = wanted_position and
-    also i + 2 < len(input_list).
+    """Returns an array containing indexes i of input_list argument that satisfy i % 3 = wanted_position
+    and also i + 2 < len(input_list).
 
     Args:
         input_list (list[int]): array of integers
-        wanted_position (int): either 0, 1 or 2. Defines the indexes of input_list that will be put in the returned list
+        wanted_position (int): either 0, 1 or 2. Defines the indexes of input_list that will
+            be put in the returned list
 
     Returns:
         list[int]: contains indexes i of input_list such that i % 3 = wanted_position.
@@ -287,8 +303,8 @@ def is_repeated_elem(int_seq: list[int]) -> bool:
     return False
 
 
-def dc3(str_seq: list[int]):
-    int_seq = add_sentinel_numbers(convert_dna_to_int(str_seq))
+def dc3(int_seq: list[int]):
+    # int_seq = add_sentinel_numbers(convert_dna_to_int(str_seq))
     P12 = get_position_table(int_seq, 1) + get_position_table(int_seq, 2)
     R12 = get_triplet_index(int_seq, P12)
     index12_unsorted = get_indexes(R12)
@@ -300,6 +316,12 @@ def dc3(str_seq: list[int]):
     if is_repeated_elem(suffix_table[:-3]):  # avoid sentinel elements
         index12 = dc3(suffix_table)
     P0 = get_position_table(int_seq, 0)
+    R0 = get_pairs_index(int_seq, P0, index12)
+    R0_sorted = radix_sort(R0)
+    index0 = get_indexes(R0_sorted)
+    order0 = get_orders(R0_sorted)
+    index012 = merge_index_tables(int_seq, index12, index0)
+    return remove_sentinel_index(index012)
 
 
 if __name__ == "__main__":
@@ -308,8 +330,11 @@ if __name__ == "__main__":
     seq_int = convert_dna_to_int(test_seq)
     print(seq_int == [1, 4, 4, 1, 3, 2, 1, 3, 2, 2])  # OK
 
+    seq_int = str_to_ascii("abcabcacab")
+    print(seq_int == [97, 98, 99, 97, 98, 99, 97, 99, 97, 98])  # OK
+
     seq_int = add_sentinel_numbers(seq_int)
-    print(seq_int == [1, 4, 4, 1, 3, 2, 1, 3, 2, 2, 0, 0, 0])  # OK
+    print(seq_int == [97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0])  # OK
 
     pos_table_1 = get_position_table(seq_int, wanted_position=1)
     print(pos_table_1 == [1, 4, 7, 10])  # OK
@@ -321,56 +346,45 @@ if __name__ == "__main__":
     print(
         tuple_list
         == [
-            ((4, 4, 1), 1),
-            ((3, 2, 1), 4),
-            ((3, 2, 2), 7),
+            ((98, 99, 97), 1),
+            ((98, 99, 97), 4),
+            ((99, 97, 98), 7),
             ((0, 0, 0), 10),
-            ((4, 1, 3), 2),
-            ((2, 1, 3), 5),
-            ((2, 2, 0), 8),
+            ((99, 97, 98), 2),
+            ((99, 97, 99), 5),
+            ((97, 98, 0), 8),
         ]
     )  # OK
 
     print(
         get_triplet(tuple_list)
         == [
-            (4, 4, 1),
-            (3, 2, 1),
-            (3, 2, 2),
+            (98, 99, 97),
+            (98, 99, 97),
+            (99, 97, 98),
             (0, 0, 0),
-            (4, 1, 3),
-            (2, 1, 3),
-            (2, 2, 0),
+            (99, 97, 98),
+            (99, 97, 99),
+            (97, 98, 0),
         ]
     )  # OK
 
     sorted_triplet_list = radix_sort(tuple_list)
-    print(
-        sorted_triplet_list
-        == [
-            ((0, 0, 0), 10),
-            ((2, 1, 3), 5),
-            ((2, 2, 0), 8),
-            ((3, 2, 1), 4),
-            ((3, 2, 2), 7),
-            ((4, 4, 1), 1),
-            ((4, 1, 3), 2),
-        ]
-    )
+    # (0, 0, 0), (97, 98, 0), (98, 99, 97), (98, 99, 97), (99, 97,98), (99, 97, 98), (99, 97, 99)
 
     index_list = get_indexes(tuple_list)
     print(index_list == [1, 4, 7, 10, 2, 5, 8])  # OK
 
     index_list_sorted = get_indexes(sorted_triplet_list)
-    print(index_list_sorted == [10, 5, 8, 4, 7, 1, 2])  # OK
+    print(index_list_sorted == [10, 8, 1, 4, 7, 2, 5])  # OK
 
     order_table = get_orders(sorted_triplet_list)
-    print(order_table == [1, 2, 3, 4, 5, 6, 7])  # OK
+    print(order_table == [1, 2, 3, 3, 4, 4, 5])  # OK
 
     next_int_list = add_sentinel_numbers(
         create_next_list(index_list, index_list_sorted, order_table)
     )
-    print(next_int_list == [6, 4, 5, 1, 7, 2, 3, 0, 0, 0])  # OK
+    print(next_int_list == [3, 3, 4, 1, 4, 5, 2, 0, 0, 0])  # OK
 
     next_pos_table_0 = get_position_table(next_int_list, wanted_position=0)
     print(next_pos_table_0 == [0, 3, 6])  # OK
@@ -397,5 +411,10 @@ if __name__ == "__main__":
     print(merge_index_tables([97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0],
                              [10, 8, 1, 4, 7, 2, 5], [0, 3, 6, 9]) == [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5])  # OK
 
+    print(remove_sentinel_index(
+        [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5]) == [8, 0, 3, 6, 9, 1, 4, 7, 2, 5])  # OK
+
     print(is_repeated_elem([6, 4, 5, 1, 7, 2, 3]) is False)  # OK
     print(is_repeated_elem([3, 3, 4, 1, 4, 5, 2]) is True)  # OK
+
+    # print(dc3("abcabcacab"))
