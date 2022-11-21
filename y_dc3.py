@@ -18,6 +18,21 @@ def strToAscii(text: str) -> array:  # ya un numpy loadtxt qui existe
     return res_array
 
 
+def strToBase(text: str) -> array:
+    text = text.upper()
+    res_array = np.empty(len(text))
+    for i in range(len(text)):
+        if text[i] == "A":
+            res_array[i] = 1
+        elif text[i] == "C":
+            res_array[i] = 2
+        elif text[i] == "G":
+            res_array[i] = 3
+        else:
+            res_array[i] = 4
+    return res_array
+
+
 def asciiToStr(ascii_list: array) -> str:
     """Transform a Numpy array of int to a string
     TO DO : adapt to ACGT
@@ -105,7 +120,6 @@ def print_iters_dict(iters_dict: dict) -> None:
 
 
 def reccursive_sort_s11(init_seq, iter_dict, iter=0):
-
     T = np.concatenate((init_seq, np.zeros(3)))
     p12 = makeP12(T)
     r12 = makeTriplet(T, p12)
@@ -125,15 +139,24 @@ def step2():
     pass
 
 
-if __name__ == "__main__":
-    s = "abcabcacab"
+def dc3(seq: str):
     iter_dict = {}
-
-    T = strToAscii(s)
-    print(T)
+    T = strToAscii(seq)
     reccursive_sort_s11(T, iter_dict)
     print(iter_dict)
     print_iters_dict(iter_dict)
+
+
+if __name__ == "__main__":
+    # s = "abcabcacab"
+    # iter_dict = {}
+
+    # T = strToAscii(s)
+    # print(T)
+    # reccursive_sort_s11(T, iter_dict)
+    # print(iter_dict)
+    # print_iters_dict(iter_dict)
+    print(strToBase("ATTAGCAGCC"))
 
 
 # Important pas stocker tout les info, en théorie y'a juste order a stocker. (P0 a voir ptete besoin a la fin).
