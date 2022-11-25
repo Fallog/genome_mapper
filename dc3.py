@@ -20,7 +20,7 @@ def str_to_ascii(input_string: str) -> list[int]:
 
 def convert_dna_to_int(dna_seq: str) -> list[int]:
     """Convert a string of character into a list of integers representing each character.
-    Because the strings are DNA sequence, the conversion is made with a dictionary 
+    Because the strings are DNA sequence, the conversion is made with a dictionary
     mapping each nucleotide with a number. A -> 1 ; C -> 2 ; G -> 3 ; T -> 4
     The chosen number respect the order of this 4 letters in the alphabet.
 
@@ -145,7 +145,7 @@ def get_orders(sorted_tuple_list: list[tuple[tuple[int, int, int], int]]) -> lis
     Returns:
         list[int]: sorted positions of the triplets
     """
-    size = len(tuple_list)  # performance & code compactness
+    size = len(sorted_tuple_list)  # performance & code compactness
     # element 0 have order 1 and the for loop start to 1
     order_table = [1] * size
 
@@ -305,22 +305,46 @@ def is_repeated_elem(int_seq: list[int]) -> bool:
 
 def dc3(int_seq: list[int]):
     # int_seq = add_sentinel_numbers(convert_dna_to_int(str_seq))
+    int_seq = add_sentinel_numbers(int_seq)
     P12 = get_position_table(int_seq, 1) + get_position_table(int_seq, 2)
+    print(f"P12 : {P12}")
+
     R12 = get_triplet_index(int_seq, P12)
+    print(f"R12 : {R12}")
+
     index12_unsorted = get_indexes(R12)
+    print(f"Index12 unsorted : {index12_unsorted}")
+
     R12_sorted = radix_sort(R12)
+    print(f"R12 sorted : {R12_sorted}")
+
     index12 = get_indexes(R12_sorted)
+    print(f"Index12 : {index12}")
+
     order12 = get_orders(R12_sorted)
-    suffix_table = remove_sentinel_index(
-        create_next_list(index12_unsorted, index12, order12))
+    print(f"Order12 : {order12}")
+
+    suffix_table = create_next_list(index12_unsorted, index12, order12)
+    print(f"T' : {suffix_table}")
+
     if is_repeated_elem(suffix_table[:-3]):  # avoid sentinel elements
         index12 = dc3(suffix_table)
+
     P0 = get_position_table(int_seq, 0)
+    print(f"P0 : {P0}")
+
     R0 = get_pairs_index(int_seq, P0, index12)
+    print(f"R0 : {R0}")
+
     R0_sorted = radix_sort(R0)
+    print(f"R0 sorted : {R0_sorted}")
     index0 = get_indexes(R0_sorted)
+    print(f"Index0 : {index0}")
+
     order0 = get_orders(R0_sorted)
     index012 = merge_index_tables(int_seq, index12, index0)
+    print(f"Index012 : {index012}")
+
     return remove_sentinel_index(index012)
 
 
@@ -381,12 +405,14 @@ if __name__ == "__main__":
     order_table = get_orders(sorted_triplet_list)
     print(order_table == [1, 2, 3, 3, 4, 4, 5])  # OK
 
-    next_int_list = add_sentinel_numbers(
+    new_seq = add_sentinel_numbers(
         create_next_list(index_list, index_list_sorted, order_table)
     )
-    print(next_int_list == [3, 3, 4, 1, 4, 5, 2, 0, 0, 0])  # OK
+    print(
+        f"Test create_next_list: {new_seq == [3, 3, 4, 1, 4, 5, 2, 0, 0, 0]}"
+    )  # OK
 
-    next_pos_table_0 = get_position_table(next_int_list, wanted_position=0)
+    next_pos_table_0 = get_position_table(new_seq, wanted_position=0)
     print(next_pos_table_0 == [0, 3, 6])  # OK
 
     pairs_table = get_pairs_index(
@@ -417,4 +443,5 @@ if __name__ == "__main__":
     print(is_repeated_elem([6, 4, 5, 1, 7, 2, 3]) is False)  # OK
     print(is_repeated_elem([3, 3, 4, 1, 4, 5, 2]) is True)  # OK
 
-    # print(dc3("abcabcacab"))
+    # input should be a list of ints
+    print(dc3([97, 98, 99, 97, 98, 99, 97, 99, 97, 98]))
