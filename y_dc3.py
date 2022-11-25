@@ -45,7 +45,8 @@ def reccursive_sort_s11(init_seq, iter=0):
     else:
         i = iter + 1
         reccursive_sort_s11(tp, i)
-    print(tp, iter)  # STILL WORKING !
+
+    # tools.printDc3Var(p12, r12, r12s, index, tp, iter) Pour vérifier
 
 
 def computeDc3Variable(T):

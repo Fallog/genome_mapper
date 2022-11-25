@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 
-def strToAscii(text: str) :  # ya un numpy loadtxt qui existe
+def strToAscii(text: str):  # ya un numpy loadtxt qui existe
     """Transform a string to is Ascii value ant put it in a numpy array
     TO DO : update for DNA (A --> 1 : C --> 2 : G --> 3 : T --> 4)
 
@@ -46,7 +46,21 @@ def asciiToStr(ascii_list) -> str:
     return res_txt
 
 
+def printDc3Var(p12, r12, r12s, index, tp, iter=-1) -> None:
+    param = locals()
+    str_to_print = ""
+    for key, val in param.items():
+        if key == "iter":
+            if iter >= 0:
+                print(f"---- ITERATION N°{iter} ----\n")
+        else:
+            str_to_print += f"Value of {key} is actually : {val}\n"
+    print(str_to_print)
+
+
 if __name__ == "__main__":
+
+    printDc3Var(1, 3, 4, 5, 6, iter=5)
 
     # liste = np.array(
     #     [
