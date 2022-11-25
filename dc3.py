@@ -205,8 +205,8 @@ def get_pairs_index(
         pairs_table[i] = (
             (
                 int_sequence[position],
-                index_table[int_sequence[position + 1]
-                            - 1] if i != size - 1 else 1,
+                index_table[int_sequence[position + 1] -
+                            1] if i != size - 1 else 1,
             ),
             position,
         )
@@ -228,7 +228,9 @@ def remove_sentinel_index(merged_index_table: list[int]) -> list[int]:
     return merged_index_table[1:]
 
 
-def get_smallest_index(int_seq: list[int], index12: int, index0: int, nb_loop: int = 0) -> int:
+def get_smallest_index(
+    int_seq: list[int], index12: int, index0: int, nb_loop: int = 0
+) -> int:
     """Returns the index refering to the smallest integer in int_seq argument.
     If index12 and index0 arguments refer to equal integers in int_seq, then the function uses
     recursion to compare index12 + 1 and index0 + 1 etc.
@@ -429,16 +431,29 @@ if __name__ == "__main__":
     print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 7, 3) == 7)  # OK
     print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 1, 3) == 3)  # OK
     print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 1, 0) == 0)  # OK
-    print(get_smallest_index(
-        [97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0], 8, 0) == 8)  # OK
+    print(
+        get_smallest_index([97, 98, 99, 97, 98, 99, 97,
+                           99, 97, 98, 0, 0, 0], 8, 0) == 8
+    )  # OK
 
-    print(merge_index_tables([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], [7, 1, 2, 4, 5], [3, 6, 0])
-          == [7, 3, 6, 0, 1, 2, 4, 5])  # OK
-    print(merge_index_tables([97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0],
-                             [10, 8, 1, 4, 7, 2, 5], [0, 3, 6, 9]) == [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5])  # OK
+    print(
+        merge_index_tables([3, 3, 4, 1, 4, 5, 2, 0, 0, 0],
+                           [7, 1, 2, 4, 5], [3, 6, 0])
+        == [7, 3, 6, 0, 1, 2, 4, 5]
+    )  # OK
+    print(
+        merge_index_tables(
+            [97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0],
+            [10, 8, 1, 4, 7, 2, 5],
+            [0, 3, 6, 9],
+        )
+        == [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5]
+    )  # OK
 
-    print(remove_sentinel_index(
-        [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5]) == [8, 0, 3, 6, 9, 1, 4, 7, 2, 5])  # OK
+    print(
+        remove_sentinel_index([10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5])
+        == [8, 0, 3, 6, 9, 1, 4, 7, 2, 5]
+    )  # OK
 
     print(is_repeated_elem([6, 4, 5, 1, 7, 2, 3]) is False)  # OK
     print(is_repeated_elem([3, 3, 4, 1, 4, 5, 2]) is True)  # OK
