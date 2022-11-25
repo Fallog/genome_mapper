@@ -143,8 +143,8 @@ def dc3(seq: str):
     iter_dict = {}
     T = strToAscii(seq)
     reccursive_sort_s11(T, iter_dict)
-    print(iter_dict)
-    print_iters_dict(iter_dict)
+    # print(iter_dict)
+    # print_iters_dict(iter_dict)
 
 
 if __name__ == "__main__":
@@ -156,7 +156,8 @@ if __name__ == "__main__":
     # reccursive_sort_s11(T, iter_dict)
     # print(iter_dict)
     # print_iters_dict(iter_dict)
-    print(strToBase("ATTAGCAGCC"))
+    iter_dict = {}
+    iter_dict = dc3("abcabcacab")
 
 
 # Important pas stocker tout les info, en théorie y'a juste order a stocker. (P0 a voir ptete besoin a la fin).

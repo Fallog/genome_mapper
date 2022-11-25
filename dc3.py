@@ -20,7 +20,7 @@ def str_to_ascii(input_string: str) -> list[int]:
 
 def convert_dna_to_int(dna_seq: str) -> list[int]:
     """Convert a string of character into a list of integers representing each character.
-    Because the strings are DNA sequence, the conversion is made with a dictionary 
+    Because the strings are DNA sequence, the conversion is made with a dictionary
     mapping each nucleotide with a number. A -> 1 ; C -> 2 ; G -> 3 ; T -> 4
     The chosen number respect the order of this 4 letters in the alphabet.
 
@@ -145,7 +145,7 @@ def get_orders(sorted_tuple_list: list[tuple[tuple[int, int, int], int]]) -> lis
     Returns:
         list[int]: sorted positions of the triplets
     """
-    size = len(tuple_list)  # performance & code compactness
+    size = len(sorted_tuple_list)  # performance & code compactness
     # element 0 have order 1 and the for loop start to 1
     order_table = [1] * size
 
@@ -205,8 +205,7 @@ def get_pairs_index(
         pairs_table[i] = (
             (
                 int_sequence[position],
-                index_table[int_sequence[position + 1]
-                            - 1] if i != size - 1 else 1,
+                index_table[int_sequence[position + 1] - 1] if i != size - 1 else 1,
             ),
             position,
         )
@@ -228,7 +227,9 @@ def remove_sentinel_index(merged_index_table: list[int]) -> list[int]:
     return merged_index_table[1:]
 
 
-def get_smallest_index(int_seq: list[int], index12: int, index0: int, nb_loop: int = 0) -> int:
+def get_smallest_index(
+    int_seq: list[int], index12: int, index0: int, nb_loop: int = 0
+) -> int:
     """Returns the index refering to the smallest integer in int_seq argument.
     If index12 and index0 arguments refer to equal integers in int_seq, then the function uses
     recursion to compare index12 + 1 and index0 + 1 etc.
@@ -298,7 +299,7 @@ def is_repeated_elem(int_seq: list[int]) -> bool:
             False otherwise
     """
     for i in range(len(int_seq) - 1):
-        if int_seq[i + 1:].count(int_seq[i]) > 0:
+        if int_seq[i + 1 :].count(int_seq[i]) > 0:
             return True
     return False
 
@@ -312,16 +313,17 @@ def dc3(int_seq: list[int]):
     index12 = get_indexes(R12_sorted)
     order12 = get_orders(R12_sorted)
     suffix_table = remove_sentinel_index(
-        create_next_list(index12_unsorted, index12, order12))
+        create_next_list(index12_unsorted, index12, order12)
+    )
     if is_repeated_elem(suffix_table[:-3]):  # avoid sentinel elements
         index12 = dc3(suffix_table)
-    P0 = get_position_table(int_seq, 0)
-    R0 = get_pairs_index(int_seq, P0, index12)
-    R0_sorted = radix_sort(R0)
-    index0 = get_indexes(R0_sorted)
-    order0 = get_orders(R0_sorted)
-    index012 = merge_index_tables(int_seq, index12, index0)
-    return remove_sentinel_index(index012)
+    # P0 = get_position_table(int_seq, 0)
+    # R0 = get_pairs_index(int_seq, P0, index12)
+    # R0_sorted = radix_sort(R0)
+    # index0 = get_indexes(R0_sorted)
+    # order0 = get_orders(R0_sorted)
+    # index012 = merge_index_tables(int_seq, index12, index0)
+    # return remove_sentinel_index(index012)
 
 
 if __name__ == "__main__":
@@ -403,16 +405,27 @@ if __name__ == "__main__":
     print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 7, 3) == 7)  # OK
     print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 1, 3) == 3)  # OK
     print(get_smallest_index([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], 1, 0) == 0)  # OK
-    print(get_smallest_index(
-        [97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0], 8, 0) == 8)  # OK
+    print(
+        get_smallest_index([97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0], 8, 0) == 8
+    )  # OK
 
-    print(merge_index_tables([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], [7, 1, 2, 4, 5], [3, 6, 0])
-          == [7, 3, 6, 0, 1, 2, 4, 5])  # OK
-    print(merge_index_tables([97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0],
-                             [10, 8, 1, 4, 7, 2, 5], [0, 3, 6, 9]) == [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5])  # OK
+    print(
+        merge_index_tables([3, 3, 4, 1, 4, 5, 2, 0, 0, 0], [7, 1, 2, 4, 5], [3, 6, 0])
+        == [7, 3, 6, 0, 1, 2, 4, 5]
+    )  # OK
+    print(
+        merge_index_tables(
+            [97, 98, 99, 97, 98, 99, 97, 99, 97, 98, 0, 0, 0],
+            [10, 8, 1, 4, 7, 2, 5],
+            [0, 3, 6, 9],
+        )
+        == [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5]
+    )  # OK
 
-    print(remove_sentinel_index(
-        [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5]) == [8, 0, 3, 6, 9, 1, 4, 7, 2, 5])  # OK
+    print(
+        remove_sentinel_index([10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5])
+        == [8, 0, 3, 6, 9, 1, 4, 7, 2, 5]
+    )  # OK
 
     print(is_repeated_elem([6, 4, 5, 1, 7, 2, 3]) is False)  # OK
     print(is_repeated_elem([3, 3, 4, 1, 4, 5, 2]) is True)  # OK
