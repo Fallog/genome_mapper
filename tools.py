@@ -1,6 +1,5 @@
-from array import array
 import cProfile
-from random import randint, seed
+import random
 import numpy as np
 
 
@@ -34,8 +33,8 @@ if __name__ == "__main__":
         dtype=[("1", int), ("2", int), ("3", int)],
     )
 
-    seed(12)
-    # datatest = [(randint(1, 4), randint(1, 4), randint(1, 4)) for i in range(500000)]
+    random.seed(12)
+    # datatest = [(randint(1, 4), randint(1, 4), randint(1, 4)) for i in range(5000)]
 
     # datatest = np.array(datatest, dtype=[("1", int), ("2", int), ("3", int)])
 
@@ -45,4 +44,4 @@ if __name__ == "__main__":
     res = quickSort(liste)
     print(liste)
     print(res)
-    # cProfile.run("quickSort(datatest)")
+    cProfile.run("quickSort(liste)")

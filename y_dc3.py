@@ -1,7 +1,7 @@
 # import numpy   ## A convertir en numpy
 from array import array
 import numpy as np
-from quickSort import quickSort
+import tools
 
 
 def strToAscii(text: str) -> array:  # ya un numpy loadtxt qui existe
@@ -80,10 +80,12 @@ def makeTriplet(t_list: array, p12_list: array) -> array:
 
 
 def sortTriplet(r12: list[list[int]]) -> list[list[int]]:
-    return quickSort(r12)
+    return tools.quickSort(r12)
 
 
-def makeDict(p12: array, r12: array, r12s: array, index_list: array, tp: array) -> dict:
+def makeDict(
+    p12: array, r12: array, r12s: array, index_list: array, tp: array
+) -> dict:  # !! USELESS !!
     """Make a dict to keep all data needed for this algorithm
     TO DO : Deep only data needed
 
@@ -108,31 +110,33 @@ def makeDict(p12: array, r12: array, r12s: array, index_list: array, tp: array) 
     return i_dict
 
 
-def print_dict(iter_dict: dict) -> None:
+def print_dict(iter_dict: dict) -> None:  # !! USELESS !!
     for key, vals in iter_dict.items():
         print(f"The {key} is : {vals}")
 
 
-def print_iters_dict(iters_dict: dict) -> None:
+def print_iters_dict(iters_dict: dict) -> None:  # !! USELESS !!
     for key, vals in iters_dict.items():
         print(f"For the iteration number --- {key} --- :\n")
         print_dict(vals)
 
 
-def reccursive_sort_s11(init_seq, iter_dict, iter=0):
+def reccursive_sort_s11(init_seq, iter=0):
     T = np.concatenate((init_seq, np.zeros(3)))
     p12 = makeP12(T)
     r12 = makeTriplet(T, p12)
     r12s = np.copy(r12)
     index_list, tp = sortTriplet(r12s)
-    d = makeDict(p12, r12, r12s, index_list, tp)
-    iter_dict[str(iter)] = d
+    index = np.take_along_axis(np.copy(p12), index_list, axis=0)
+    # d = makeDict(p12, r12, r12s, index_list, tp)  !! USELESS !!
+    # iter_dict[str(iter)] = d                      !! USELESS !!
 
     if tp.shape == np.unique(tp).shape:  # step 2 ?
         print("on est la")
     else:
         i = iter + 1
-        reccursive_sort_s11(iter_dict[str(iter)]["tp"], iter_dict, iter=i)
+        reccursive_sort_s11(tp, i)
+    print(tp, iter)  # STILL WORKING !
 
 
 def step2():
@@ -140,9 +144,8 @@ def step2():
 
 
 def dc3(seq: str):
-    iter_dict = {}
     T = strToAscii(seq)
-    reccursive_sort_s11(T, iter_dict)
+    reccursive_sort_s11(T)
     # print(iter_dict)
     # print_iters_dict(iter_dict)
 
