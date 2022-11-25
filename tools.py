@@ -58,7 +58,15 @@ def printDc3Var(p12, r12, r12s, index, tp, iter=-1) -> None:
     print(str_to_print)
 
 
+def cut_read_to_kmer(read: str, k_len) -> list[str]:
+
+    for i in range(0, len(read, k_len)):
+
+
 if __name__ == "__main__":
+
+    fst_read = "TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"
+    print(len(fst_read))
 
     printDc3Var(1, 3, 4, 5, 6, iter=5)
 
