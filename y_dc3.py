@@ -13,7 +13,7 @@ def makeP12(t_list: array) -> array:
     Returns:
         array: array of all the n+1%3 and n+2%3 iif < N-2
     """
-    lenght = len(t_list)
+    lenght = t_list.size
     p1 = np.arange(1, lenght - 2, 3)
     p2 = np.arange(2, lenght - 2, 3)
     return np.concatenate((p1, p2))
@@ -30,23 +30,19 @@ def makeTriplet(t_list: array, p12_list: array) -> array:
     Returns:
         array: Array of triplet create by p12 and T
     """
-    r12 = np.zeros(len(p12_list), dtype=[("1", int), ("2", int), ("3", int)])
+    r12 = np.zeros(p12_list.size, dtype=[("1", int), ("2", int), ("3", int)])
     for i, ind in enumerate(p12_list):
         r12[i] = (t_list[ind], t_list[ind + 1], t_list[ind + 2])
     return r12
 
 
-def reccursive_sort_s11(init_seq, iter=0):
-    T = np.concatenate((init_seq, np.zeros(3)))
-    p12, r12, r12s, index, tp = computeDc3Variable(T)
-
-    if tp.shape == np.unique(tp).shape:  # step 2 ?
-        print("on est la")
-    else:
-        i = iter + 1
-        reccursive_sort_s11(tp, i)
-
-    # tools.printDc3Var(p12, r12, r12s, index, tp, iter) Pour vérifier
+def makeR0(p0, tp):
+    y = p0.size
+    r0 = np.empty((y), dtype=[("1", int), ("2", int)])
+    for i in range(y):  # TODO: TO UPGRADE
+        r0[i][0] = int(tp[p0[i]])
+        r0[i][1] = p0[i]  # NOT SURE
+    return r0
 
 
 def computeDc3Variable(T):
@@ -68,7 +64,7 @@ def computeDc3Variable(T):
     r12 = makeTriplet(T, p12)
     r12s = np.copy(r12)
     index_list = np.argsort(r12s, kind="mergesort", order=("1", "2", "3"))
-    index = np.take_along_axis(np.copy(p12), index_list, axis=0)
+    index = np.take_along_axis(p12, index_list, axis=0)
 
     r12s.sort(kind="quicksort", order=("1", "2", "3"))  # SORT HERE
     tp = np.empty(r12s.size)
@@ -79,8 +75,68 @@ def computeDc3Variable(T):
     return p12, r12, r12s, index, tp
 
 
-def step2():
-    pass
+def reccursive_sort_s11(init_seq, last_tp=None, iter=0):
+    """Do the reccusrive sort to eliminate all value in double
+
+    Args:
+        init_seq (array): T string
+        last_tp (_type_): Last T\'.
+        iter (int, optional): The actual number of iteration. Defaults to 0.
+    """
+    T = np.concatenate((init_seq, np.zeros(3)))
+    if last_tp is None:
+        last_tp = T
+    p12, r12, r12s, index, tp = computeDc3Variable(T)
+    if tp.shape == np.unique(tp).shape:  # step 2 ?
+        print("on est la")
+    else:
+        i = iter + 1
+        reccursive_sort_s11(tp, tp, i)
+    tools.printDc3Var(p12, r12, r12s, index, tp, iter)  ## Pour vérifier
+
+    if iter:
+        step2(T, index, init_seq, iter)
+
+
+def step2(T, index_r12, tp, iter):
+    p0 = np.arange(0, tp.size, 3)
+    r0 = makeR0(p0, tp)
+    index_r0 = np.argsort(
+        r0, kind="mergesort", order=("1", "2")
+    )  # Give index after sort
+    index0 = np.take_along_axis(
+        p0, index_r0, axis=0
+    )  # Take an array and new index and give new array
+    merging_r0_r12(T, index_r0, index_r12)
+    print(index0)
+
+
+def get_smallest_index(T, val_12, val_0, nb_loop=0):
+    T_12 = T[val_12]
+    T_0 = T[val_0]
+    if T_12 != T_0:
+        if min(T_0, T_12) == T_0:
+            return (val_0 - nb_loop, "0")
+        else:
+            return (val_12 - nb_loop, "12")
+    else:
+        get_smallest_index(T, val_12 + 1, val_0 + 1, nb_loop + 1)
+
+
+def merging_r0_r12(T, index_r0, index_r12):
+    size12, size0 = index_r12.size, index_r0.size
+    index_table_merged = np.empty(size12 + size0)
+    i_r12, i_r0 = 0, 0
+    while i_r12 < size12 and i_r0 < size0:
+        val_12 = index_r12[i_r12]
+        val_0 = int(index_r0[i_r0])
+        val, type = get_smallest_index(T, val_12, val_0)
+        index_table_merged[i_r0 + i_r12] = int(val)
+        if type == "0":
+            i_r0 += 1
+        else:
+            i_r12 += 1
+    print(index_table_merged)
 
 
 def dc3(seq: str):  # TODO: Changer recursive_sort_s11 en DC3
