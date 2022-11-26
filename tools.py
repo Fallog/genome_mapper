@@ -59,16 +59,36 @@ def printDc3Var(p12, r12, r12s, index, tp, iter=-1) -> None:
 
 
 def cut_read_to_kmer(read: str, k_len) -> list[str]:
+    """Divide the given read argument into a list of k-mer, i.e. smaller strings, 
+    of size the k_len argument.
 
-    for i in range(0, len(read, k_len)):
+    Args:
+        read (str): dna sequence
+        k_len (_type_): size of the k-mer to be created from the read sequence
+
+    Returns:
+        list[str]: list of all the k-mer created from the read argument
+    """
+    read_len = len(read)  # performance
+    kmer_l = [0] * (read_len // k_len)
+    read_cnt = 0
+    k_cnt = 0
+    while read_cnt <= read_len - k_len:
+        kmer_l[k_cnt] = read[read_cnt:read_cnt + k_len]
+        read_cnt += k_len
+        k_cnt += 1
+
+    # don't forget to add remaining nucleotides in case of non divisible k_len
+    return kmer_l + [read[read_cnt:]]
 
 
 if __name__ == "__main__":
-
     fst_read = "TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"
-    print(len(fst_read))
 
-    printDc3Var(1, 3, 4, 5, 6, iter=5)
+    print(len(fst_read[:6]))
+    print(fst_read[0:10])
+    print(fst_read[90:100])
+    print(cut_read_to_kmer(fst_read, 45))
 
     # liste = np.array(
     #     [
