@@ -59,11 +59,11 @@ def printDc3Var(p12, r12, r12s, index, tp, iter=-1) -> None:
 
 
 def cut_read_to_kmer(read: str, k_len) -> list[str]:
-    """Divide the given read argument into a list of k-mer, i.e. smaller strings, 
+    """Divide the given read argument into a list of k-mer, i.e. smaller strings,
     of size the k_len argument.
 
     Args:
-        read (str): dna sequence
+        read (str): str made of the characters 'A', 'T', 'C' and 'G'
         k_len (_type_): size of the k-mer to be created from the read sequence
 
     Returns:
@@ -78,8 +78,34 @@ def cut_read_to_kmer(read: str, k_len) -> list[str]:
         read_cnt += k_len
         k_cnt += 1
 
-    # don't forget to add remaining nucleotides in case of non divisible k_len
+    # Adding remaining nucleotides in case of non divisible k_len
     return kmer_l + [read[read_cnt:]]
+
+
+def inverse_sequence(dnaSeq: str) -> str:
+    """Returns the inversed complementary strand of the dnaSeq argument.
+    'A' becomes 'T', 'C' becomes 'G' and inversely.
+
+    Args:
+        dnaSeq (str): str made of the characters 'A', 'T', 'C' and 'G'
+
+    Returns:
+        str: complementary strand of dnaSeq, built backwards
+    """
+    seqLen = len(dnaSeq)  # Performance
+    dnaSeqInv = [0] * seqLen  # Performance
+    for i in range(seqLen):
+        base = dnaSeq[i]
+        # dnaSeqInv is built backwards because it the inversed of dnaSeq
+        if base == 'A':
+            dnaSeqInv[-(i + 1)] = 'T'
+        elif base == 'T':
+            dnaSeqInv[-(i + 1)] = 'A'
+        elif base == 'C':
+            dnaSeqInv[-(i + 1)] = 'G'
+        else:
+            dnaSeqInv[-(i + 1)] = 'C'
+    return "".join(dnaSeqInv)  # Recreate a string
 
 
 if __name__ == "__main__":
@@ -89,6 +115,8 @@ if __name__ == "__main__":
     print(fst_read[0:10])
     print(fst_read[90:100])
     print(cut_read_to_kmer(fst_read, 45))
+
+    print(inverse_sequence("TTTCCTTTTT") == "AAAAAGGAAA")  # OK
 
     # liste = np.array(
     #     [
