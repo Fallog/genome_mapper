@@ -94,6 +94,7 @@ def inverse_sequence(dnaSeq: str) -> str:
     """
     seqLen = len(dnaSeq)  # Performance
     dnaSeqInv = [0] * seqLen  # Performance
+
     for i in range(seqLen):
         base = dnaSeq[i]
         # dnaSeqInv is built backwards because it the inversed of dnaSeq
@@ -109,14 +110,12 @@ def inverse_sequence(dnaSeq: str) -> str:
 
 
 if __name__ == "__main__":
-    fst_read = "TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"
+    fst_read = """TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"""
+    print(f"Cuttinng test: {cut_read_to_kmer(fst_read, 20)}")
 
-    print(len(fst_read[:6]))
-    print(fst_read[0:10])
-    print(fst_read[90:100])
-    print(cut_read_to_kmer(fst_read, 45))
-
-    print(inverse_sequence("TTTCCTTTTT") == "AAAAAGGAAA")  # OK
+    frag = "TTTCCTTTTT"
+    invFrag = "AAAAAGGAAA"
+    print(f"Inversing test: {inverse_sequence(frag) == invFrag}")  # OK
 
     # liste = np.array(
     #     [
