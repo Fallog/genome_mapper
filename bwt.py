@@ -13,7 +13,7 @@ def suffix_list(T):
     """
     suffix_list = []
     for i in range(len(T)):
-        suffix_list.append(T[(- i - 1):])
+        suffix_list.append(T[(-i - 1) :])
     return suffix_list
 
 
@@ -61,7 +61,7 @@ def string(T, end_of_string="$"):
     for tuple in s_table:
         index = tuple[1]
         bwt += T[index - 1]
-    return (bwt)
+    return bwt
 
 
 def efficient_inverse_BWT(bwt, end_of_string="$"):
@@ -98,7 +98,7 @@ def efficient_inverse_BWT(bwt, end_of_string="$"):
         X = bwt[j - 1]
         k = appar_order_table[j - 1]
 
-    return (T[:-1])
+    return T[:-1]
 
 
 def create_rank_table(string: str) -> list[int]:
@@ -137,7 +137,7 @@ def search_kmer_pos(genome: str, kmer: str):
 
         # Because the slicing stops on the character before f, we add the
         # remaining character to not lose any information.
-        subL = L[e:f] + L[f if f < len(F) else f:]
+        subL = L[e:f] + L[f if f < len(F) else f :]
         print(f"subL: {subL}")
 
         # If f is the size of F, we don't need to append the last character
