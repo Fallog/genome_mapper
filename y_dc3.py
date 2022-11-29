@@ -14,8 +14,8 @@ def makeP12(t_list: array) -> array:
         array: array of all the n+1%3 and n+2%3 iif < N-2
     """
     lenght = t_list.size
-    p1 = np.arange(1, lenght - 2, 3)
-    p2 = np.arange(2, lenght - 2, 3)
+    p1 = np.arange(1, lenght - 2, 3, dtype=int)
+    p2 = np.arange(2, lenght - 2, 3, dtype=int)
     return np.concatenate((p1, p2))
 
 
@@ -67,7 +67,7 @@ def computeDc3Variable(T):
     index = np.take_along_axis(p12, index_list, axis=0)
 
     r12s.sort(kind="quicksort", order=("1", "2", "3"))  # SORT HERE
-    tp = np.empty(r12s.size)
+    tp = np.empty(r12s.size, dtype=int)
     array_without_duplicate = np.unique(r12s)
     for i, elem in enumerate(r12):
         tp[i] = np.where(elem == array_without_duplicate)[0][0] + 1
@@ -75,7 +75,7 @@ def computeDc3Variable(T):
     return p12, r12, r12s, index, tp
 
 
-def reccursive_sort_s11(init_seq, last_tp=None, iter=0):
+def reccursive_sort_s11(init_seq, iter=0):
     """Do the reccusrive sort to eliminate all value in double
 
     Args:
@@ -84,38 +84,28 @@ def reccursive_sort_s11(init_seq, last_tp=None, iter=0):
         iter (int, optional): The actual number of iteration. Defaults to 0.
     """
     T = np.concatenate((init_seq, np.zeros(3)))
-    if last_tp is None:
-        last_tp = T
     p12, r12, r12s, index, tp = computeDc3Variable(T)
+    print(r12)
     if tp.shape != np.unique(tp).shape:  # step 2 ?
         i = iter + 1
-        tp = reccursive_sort_s11(tp, tp, i)
+        tp, r12 = reccursive_sort_s11(tp, i)
+    else:
+        tp
     if __name__ == "__main__":
         tools.printDc3Var(p12, r12, r12s, index, tp, iter)  ## Pour vérifier
     if iter:
         p0 = np.arange(0, T.size - 2, 3)
         r0 = makeR0(p0, init_seq)
         index012 = step2(T, index, r0, p0)
-        return index012
-    else:
-        # print(new_tp, p12)
         newr12 = np.take_along_axis(p12, tp, axis=0)
+        return index012, newr12
+    else:
+        print(p12, tp, r12)
         # print(newr12)
-        p0 = np.arange(0, T.size - 2, 3)
-        r0 = makeR0(p0, init_seq)
-        # previous_val = -45 TODO: A FAIRE MARCHER
-        # for ind, val in enumerate(r0):  ## TODO: petit algo a ranger
-        #     if val[0] == previous_val:
-        #         print(r0[ind][1])
-        #         print(newr12)
-        #         new_val = np.where(newr12 == (r0[ind][1] + 1))[0][
-        #             0
-        #         ]  # acces a la value (la premiere)
-        #         r0[ind] = (new_val + 1, r0[ind][1])
-        #     else:
-        #         previous_val = val[0]
-        # print(r0)
-        res = step2(T, newr12, r0, p0)
+        p0 = np.arange(0, tp.size, 3)
+        r0 = makeR0(p0, T)
+        print(p0, r0, T)
+        res = step2(T, index, r0, p0)  ## TODO: A TROUVER [5 2 3 0 4 1]
         return res
 
 
@@ -176,6 +166,7 @@ def merging_r0_r12(T, index_r0, index_r12):
     i_r12, i_r0 = 0, 0
     while i_r12 < size12 and i_r0 < size0:
         val_12 = index_r12[i_r12]
+        print(val_12, index_r12)
         val_0 = index_r0[i_r0]
         val, val_type = get_smallest_index(T, val_12, val_0, index_r12)
         index_table_merged[i_r0 + i_r12] = val
@@ -202,7 +193,8 @@ def dc3(seq: str):  # TODO: Changer recursive_sort_s11 en DC3
 
 
 if __name__ == "__main__":
-    print(dc3("abcabcacab"))
+    # print(dc3("abcabcacab"))
+    print(dc3("abaaba"))
     # s = "abcabcacab"
     # iter_dict = {}
 
