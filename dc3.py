@@ -205,8 +205,8 @@ def get_pairs_index(
         pairs_table[i] = (
             (
                 int_sequence[position],
-                index_table[int_sequence[position + 1]
-                            - 1] if i != size - 1 else 1,
+                index_table[int_sequence[position + 1] -
+                            1] if i != size - 1 else 1,
             ),
             position,
         )
@@ -314,6 +314,9 @@ def dc3(int_seq: list[int]):
     R12 = get_triplet_index(int_seq, P12)
     print(f"R12 : {R12}")
 
+    index12_unsorted = get_indexes(R12)
+    print(f"Index12 unsorted : {index12_unsorted}")
+
     R12_sorted = radix_sort(R12)
     print(f"R12 sorted : {R12_sorted}")
 
@@ -323,7 +326,7 @@ def dc3(int_seq: list[int]):
     order12 = get_orders(R12_sorted)
     print(f"Order12 : {order12}")
 
-    suffix_table = create_next_list(P12, index12, order12)
+    suffix_table = create_next_list(index12_unsorted, index12, order12)
     print(f"T' : {suffix_table}")
 
     if is_repeated_elem(suffix_table[:-3]):  # avoid sentinel elements
@@ -340,6 +343,7 @@ def dc3(int_seq: list[int]):
     index0 = get_indexes(R0_sorted)
     print(f"Index0 : {index0}")
 
+    order0 = get_orders(R0_sorted)
     index012 = merge_index_tables(int_seq, index12, index0)
     print(f"Index012 : {index012}")
 
