@@ -39,7 +39,7 @@ def suffix_table(T):
     return suffix_table
 
 
-def bwt(T, end_of_string="$"):
+def string(T, end_of_string="$"):
     """
     Compute the BWT from the suffix table
 
@@ -98,7 +98,17 @@ def efficient_inverse_BWT(bwt, end_of_string="$"):
     return (T[:-1])
 
 
-def pattern_matching_BWT(S, pattern):
+def create_rank_table(string: str) -> list[int]:
+    strLen = len(string)
+    rank = [0] * strLen
+    for i in range(strLen):
+        # Counting elements before bwt[i] that are similar to bwt[i]
+        rank[i] = string[:i].count(string[i])
+
+    return rank
+
+
+def search_kmer_pos(genome: str, kmer: str):
     """
     Search a pattern in a String using the BWT
 
@@ -109,40 +119,72 @@ def pattern_matching_BWT(S, pattern):
     Return:
         bool: true if the pattern is in the string
     """
-    pattern_in_S = False
-    L = bwt(S)
+    isKmerIn = False
+    L = string(genome)
     F = list(L)
     F.sort()
-    e = 1
+    e = 0
     f = len(F)
-    i = len(pattern) - 1
+    i = len(kmer) - 1
+    rank = create_rank_table(L)
+    nbOccur = 1
 
-    while e < f and i > 0:
-        X = pattern[i]
+    while nbOccur > 0 and i >= 0:
+        X = kmer[i]
 
-        # Extending the range of sub_L to the next character to avoid missing
-        # a character and stop the search
-        sub_L = L[e:f] + L[f if f < len(F) else len(F) - 1]
+        # Because the slicing stops on the character before f, we add the
+        # remaining character to not lose any information.
+        subL = L[e:f] + L[f if f < len(F) else f:]
+        print(f"subL: {subL}")
 
-        if X not in sub_L:
+        # If f is the size of F, we don't need to append the last character
+        # because it is included in the slicing of subRank
+        # all of the ranks of characters that are present in subL
+        subRank = rank[e:f] + ([rank[f]] if f < len(F) else [])
+        print(f"subRank: {subRank}")
+
+        rankXInSubL = []
+        for j in range(len(subRank)):
+            if subL[j] == X:
+                rankXInSubL.append(subRank[j])
+        print(f"rankList: {rankXInSubL}")
+
+        nbOccur = len(rankXInSubL)
+
+        if X not in subL:
             break
         else:
+            fstOcc = F.index(X)
             e = F.index(X)  # e is the index of first X in the sorted BWT
             f = len(F) - 1 - F[::-1].index(X)  # same for f but with last X
 
+            # contains all the occurences of X in F
+            allX = F[e:f] + ([F[f]] if f < len(F) else [])
+            print(f"All the occurences of {X}: {allX}")
+            e = fstOcc + rankXInSubL[0]
+            print(f"Index of the first occurence of {X} in F: {e}")
+            f = fstOcc + rankXInSubL[-1]
+            print(f"Index of the last occurence of {X} in F: {f}")
+
             i -= 1
 
-    # False if the first letter is not in pattern argument
+    # False if the first letter is not in the pattern argument
     # True if the entire pattern is crossed
-    if i == 0 and pattern[0] in S:
-        pattern_in_S = True
-    return pattern_in_S
+    if i == -1 and kmer[0] in genome:
+        isKmerIn = True
+        return isKmerIn, nbOccur
+
+    return isKmerIn, nbOccur
 
 
 if __name__ == "__main__":
-    T = "ACATACAGATG"
+    T = "abaaba"
 
-    bwtT = bwt(T)
+    bwtT = string(T)
     print(bwtT)
 
     print(suffix_table(T))
+
+    print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
+
+    print(search_kmer_pos(T, "aaaba"))
