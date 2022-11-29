@@ -1,3 +1,6 @@
+import y_dc3
+
+
 def suffix_list(T):
     """
     Compute the suffix list of T argument
@@ -149,6 +152,10 @@ def search_kmer_pos(genome: str, kmer: str):
                 rankXInSubL.append(subRank[j])
         print(f"rankList: {rankXInSubL}")
 
+        if len(rankXInSubL) == 0:
+            nbOccur = 0
+            break
+
         nbOccur = len(rankXInSubL)
 
         if X not in subL:
@@ -183,7 +190,8 @@ if __name__ == "__main__":
     bwtT = string(T)
     print(bwtT)
 
-    print(suffix_table(T))
+    print(f"Original suffix table {suffix_table(T)}")
+    # print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
 
     print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
 
