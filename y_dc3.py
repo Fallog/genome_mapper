@@ -87,22 +87,20 @@ def reccursive_sort_s11(init_seq, last_tp=None, iter=0):
     if last_tp is None:
         last_tp = T
     p12, r12, r12s, index, tp = computeDc3Variable(T)
-    if tp.shape == np.unique(tp).shape:  # step 2 ?
-        print("on est la")
-    else:
+    if tp.shape != np.unique(tp).shape:  # step 2 ?
         i = iter + 1
         new_tp = reccursive_sort_s11(tp, tp, i)
-    tools.printDc3Var(p12, r12, r12s, index, tp, iter)  ## Pour vérifier
+    if __name__ == "__main__":
+        tools.printDc3Var(p12, r12, r12s, index, tp, iter)  ## Pour vérifier
     if iter:
         p0 = np.arange(0, T.size - 2, 3)
         r0 = makeR0(p0, init_seq)
         index012 = step2(T, index, r0, p0)
         return index012
-
     else:
-        print(new_tp, p12)
+        # print(new_tp, p12)
         newr12 = np.take_along_axis(p12, new_tp, axis=0)
-        print(newr12)
+        # print(newr12)
         p0 = np.arange(0, T.size - 2, 3)
         r0 = makeR0(p0, init_seq)
         # previous_val = -45 TODO: A FAIRE MARCHER
@@ -117,9 +115,8 @@ def reccursive_sort_s11(init_seq, last_tp=None, iter=0):
         #     else:
         #         previous_val = val[0]
         # print(r0)
-        print(r0)
         res = step2(T, newr12, r0, p0)
-        print(res)
+        return res
 
 
 def step2(T, index_r12, r0, p0):
@@ -134,7 +131,7 @@ def step2(T, index_r12, r0, p0):
 
 
 def get_smallest_index(T, val_12, val_0, r12):  # TODO: ULTRA MOCHE MAIS CA MARCHE
-    print(T, val_12, val_0)
+    # print(T, val_12, val_0)
     T_12 = T[val_12]
     T_0 = T[val_0]
     if T_12 != T_0:
@@ -173,7 +170,7 @@ def get_smallest_index(T, val_12, val_0, r12):  # TODO: ULTRA MOCHE MAIS CA MARC
 
 
 def merging_r0_r12(T, index_r0, index_r12):
-    print(T)
+    # print(T)
     size12, size0 = index_r12.size, index_r0.size
     index_table_merged = np.empty(size12 + size0, dtype=int)
     i_r12, i_r0 = 0, 0
@@ -199,9 +196,9 @@ def merging_r0_r12(T, index_r0, index_r12):
 
 def dc3(seq: str):  # TODO: Changer recursive_sort_s11 en DC3
     T = tools.strToAscii(seq)
-    reccursive_sort_s11(T)
-    # print(iter_dict)
-    # print_iters_dict(iter_dict)
+    suffix_array = reccursive_sort_s11(T)
+    return suffix_array
+    # print(suffix_array)
 
 
 if __name__ == "__main__":
@@ -213,8 +210,8 @@ if __name__ == "__main__":
     # reccursive_sort_s11(T, iter_dict)
     # print(iter_dict)
     # print_iters_dict(iter_dict)
-    iter_dict = {}
-    iter_dict = dc3("abcabcacab")
+    # iter_dict = {}
+    # iter_dict = dc3("abcabcacab")
 
 
 # Important pas stocker tout les info, en théorie y'a juste order a stocker. (P0 a voir ptete besoin a la fin).
