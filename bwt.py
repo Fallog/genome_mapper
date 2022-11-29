@@ -123,6 +123,16 @@ def create_rank_table(string: str) -> np.array:
     return rank
 
 
+def create_rank_mat(string: str) -> dict:
+    alphabet = ['A', 'T', 'C', 'G', '$']
+    rkMat = {}
+    lenStr = len(string)
+    for letter in alphabet:
+        # :(i + 1) because we want to include the first & last char of string
+        rkMat[letter] = [string[:(i + 1)].count(letter) for i in range(lenStr)]
+    return rkMat
+
+
 def search_kmer_pos(genome: str, kmer: str):
     """Search a pattern in a String using the BWT
 
@@ -143,6 +153,7 @@ def search_kmer_pos(genome: str, kmer: str):
     f = lenBwt
     i = len(kmer) - 1
     rank = create_rank_table(bwtGen)
+    rankMat = create_rank_mat(bwtGen)
     nbOccur = 1
 
     while nbOccur > 0 and i >= 0:
@@ -164,14 +175,14 @@ def search_kmer_pos(genome: str, kmer: str):
 
             # If f is the size of F, we don't need to append the last character
             # because it is included in the slicing of subRank
-            print(f"rank[e:f]: {rank[e:f]}")
+            # print(f"rank[e:f]: {rank[e:f]}")
             if f < lenBwt:
-                print(f"rank[f]: {rank[f]}, type: {type(rank[f])}")
+                #print(f"rank[f]: {rank[f]}, type: {type(rank[f])}")
                 subRank = np.concatenate((rank[e:f], [rank[f]]))
             else:
                 subRank = np.array(rank[e:f])
             # all of the ranks of characters that are present in subL
-            print(f"subRank: {subRank}")
+            #print(f"subRank: {subRank}")
 
             # Create an empty array of the size of subRank and taking only
             # the filled part
@@ -185,7 +196,7 @@ def search_kmer_pos(genome: str, kmer: str):
                     k += 1
                 j += 1
             rankX = np.take(rankX, list(range(k)))
-            print(f"rankXInSubL: {rankX}")
+            #print(f"rankXInSubL: {rankX}")
 
             if rankX.size == 0:
                 nbOccur = 0
@@ -209,7 +220,7 @@ def search_kmer_pos(genome: str, kmer: str):
 
 
 if __name__ == "__main__":
-    T = "abaaba"
+    T = "ATAATA"
     # T = "abcabcacab"
     arr = np.array([1, 3, 5, 7, 9])
     emptArr = np.array(arr[1])
@@ -218,7 +229,8 @@ if __name__ == "__main__":
     bwtT = bwt(T)
     print(bwtT)
 
-    print(f"Rank table of T: {create_rank_table(T)}")
+    print(f"Rank table of T: {create_rank_table(T)}")  # OK
+    print(f"Rank matrix of T: {create_rank_mat(bwtT)}")  # OK
 
     print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
 
@@ -226,4 +238,4 @@ if __name__ == "__main__":
     # print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
     print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
 
-    print(search_kmer_pos(T, "ababa"))
+    print(search_kmer_pos(T, "ATA"))
