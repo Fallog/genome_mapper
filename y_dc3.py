@@ -91,27 +91,50 @@ def reccursive_sort_s11(init_seq, last_tp=None, iter=0):
         print("on est la")
     else:
         i = iter + 1
-        reccursive_sort_s11(tp, tp, i)
+        new_tp = reccursive_sort_s11(tp, tp, i)
     tools.printDc3Var(p12, r12, r12s, index, tp, iter)  ## Pour vérifier
-
     if iter:
-        step2(T, index, init_seq, iter)
+        p0 = np.arange(0, T.size - 2, 3)
+        r0 = makeR0(p0, init_seq)
+        index012 = step2(T, index, r0, p0)
+        return index012
+
+    else:
+        print(new_tp, p12)
+        newr12 = np.take_along_axis(p12, new_tp, axis=0)
+        print(newr12)
+        p0 = np.arange(0, T.size - 2, 3)
+        r0 = makeR0(p0, init_seq)
+        # previous_val = -45 TODO: A FAIRE MARCHER
+        # for ind, val in enumerate(r0):  ## TODO: petit algo a ranger
+        #     if val[0] == previous_val:
+        #         print(r0[ind][1])
+        #         print(newr12)
+        #         new_val = np.where(newr12 == (r0[ind][1] + 1))[0][
+        #             0
+        #         ]  # acces a la value (la premiere)
+        #         r0[ind] = (new_val + 1, r0[ind][1])
+        #     else:
+        #         previous_val = val[0]
+        # print(r0)
+        print(r0)
+        res = step2(T, newr12, r0, p0)
+        print(res)
 
 
-def step2(T, index_r12, tp, iter):
-    p0 = np.arange(0, tp.size, 3)
-    r0 = makeR0(p0, tp)
+def step2(T, index_r12, r0, p0):
     index_r0 = np.argsort(
         r0, kind="mergesort", order=("1", "2")
     )  # Give index after sort
     index0 = np.take_along_axis(
         p0, index_r0, axis=0
     )  # Take an array and new index and give new array
-    index0123 = merging_r0_r12(T, index0, index_r12)
-    print(index0123)
+    index012 = merging_r0_r12(T, index0, index_r12)
+    return index012
 
 
-def get_smallest_index(T, val_12, val_0):  # Maybe too long
+def get_smallest_index(T, val_12, val_0, r12):  # TODO: ULTRA MOCHE MAIS CA MARCHE
+    print(T, val_12, val_0)
     T_12 = T[val_12]
     T_0 = T[val_0]
     if T_12 != T_0:
@@ -120,9 +143,10 @@ def get_smallest_index(T, val_12, val_0):  # Maybe too long
         else:
             return (val_12, "12")
     else:
-        if val_12 % 3 == 1:
+        if val_12 % 3 == 1 or val_0 % 3 == 1:
             if (
-                min(val_12, val_0) == val_0
+                min(np.where(r12 == val_12 + 1)[0][0], np.where(r12 == val_0 + 1)[0][0])
+                == np.where(r12 == val_0 + 1)[0][0]
             ):  # We check smallest value bc already ordered in r12
                 return (val_0, "0")
             else:
@@ -137,7 +161,11 @@ def get_smallest_index(T, val_12, val_0):  # Maybe too long
                     return (val_12, "12")
             else:
                 if (
-                    min(val_12, val_0) == val_0
+                    min(
+                        np.where(r12 == val_12 + 2)[0][0],
+                        np.where(r12 == val_0 + 2)[0][0],
+                    )
+                    == np.where(r12 == val_0 + 2)[0][0]
                 ):  # We check smallest value bc already ordered in r12
                     return (val_0, "0")
                 else:
@@ -145,13 +173,14 @@ def get_smallest_index(T, val_12, val_0):  # Maybe too long
 
 
 def merging_r0_r12(T, index_r0, index_r12):
+    print(T)
     size12, size0 = index_r12.size, index_r0.size
-    index_table_merged = np.empty(size12 + size0)
+    index_table_merged = np.empty(size12 + size0, dtype=int)
     i_r12, i_r0 = 0, 0
     while i_r12 < size12 and i_r0 < size0:
         val_12 = index_r12[i_r12]
         val_0 = index_r0[i_r0]
-        val, val_type = get_smallest_index(T, val_12, val_0)
+        val, val_type = get_smallest_index(T, val_12, val_0, index_r12)
         index_table_merged[i_r0 + i_r12] = val
         if val_type == "0":
             i_r0 += 1
@@ -161,7 +190,6 @@ def merging_r0_r12(T, index_r0, index_r12):
         while i_r0 < size0:
             index_table_merged[i_r12 + i_r0] = index_r0[i_r0]
             i_r0 += 1
-
     else:
         while i_r12 < size12:
             index_table_merged[i_r0 + i_r12] = index_r12[i_r12]
