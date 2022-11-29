@@ -64,24 +64,26 @@ def bwt(T, end_of_string="$"):
     return bwtStr
 
 
-def efficient_inverse_BWT(bwt, end_of_string="$"):
+def efficient_inverse_BWT(bwtStr: str, end_of_string: str = "$") -> str:
     """
-    Inverse the BWT
+    Returns the original string that were used to build the bwtStr
+    argument.
 
     Args:
-        bwt (str): bwt of a string T
-        last_character (char): which is the end of string character?
+        bwtStr (str): BWT of a string
+        last_character (char): specifies the end of the string used in
+            the bwt
 
     Return:
-        T (str): BWT^{-1} of bwt
+        T (str): BWT^{-1} of bwt without the last end_of_string char
     """
     T = ""
-    # Initialisation #
-    appar_order_table = []
-    for i in range(len(bwt)):
+    lenStr = len(bwtStr)  # Performance
+    appar_order_table = [0] * lenStr  # Performance
+    for i in range(lenStr):
         # Counting elements before bwt[i] that are similar to bwt[i]
-        appar_order_table.append(1 + bwt[:i].count(bwt[i]))
-    X = bwt[0]
+        appar_order_table[i] = 1 + bwtStr[:i].count(bwtStr[i])
+    X = bwtStr[0]
     k = 1
     T += end_of_string
 
@@ -89,13 +91,13 @@ def efficient_inverse_BWT(bwt, end_of_string="$"):
         T = X + T
         j = k
 
-        for i in range(len(bwt)):
-            if bwt[i] < X:
+        for i in range(len(bwtStr)):
+            if bwtStr[i] < X:
                 # Localisation of X in the sorted BWT, obtained by
                 # counting every characters that are less than X in the BWT
                 j += 1
 
-        X = bwt[j - 1]
+        X = bwtStr[j - 1]
         k = appar_order_table[j - 1]
 
     return T[:-1]
@@ -182,7 +184,6 @@ def search_kmer_pos(genome: str, kmer: str):
         return isKmerIn, nbOccur
 
     return isKmerIn, nbOccur
-    pass
 
 
 if __name__ == "__main__":
@@ -191,10 +192,12 @@ if __name__ == "__main__":
     bwtT = bwt(T)
     print(bwtT)
 
-print(f"Original suffix table {suffix_table(T)}")
-# print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
-print(suffix_table(T))
+    print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
 
-print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
+    print(f"Original suffix table {suffix_table(T)}")
+    # print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
+    print(suffix_table(T))
 
-print(search_kmer_pos(T, "rudwaaaba"))
+    print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
+
+    print(search_kmer_pos(T, "rudwaaaba"))
