@@ -13,7 +13,7 @@ def suffix_list(T):
     """
     suffix_list = []
     for i in range(len(T)):
-        suffix_list.append(T[(- i - 1):])
+        suffix_list.append(T[(-i - 1):])
     return suffix_list
 
 
@@ -98,7 +98,7 @@ def efficient_inverse_BWT(bwt, end_of_string="$"):
         X = bwt[j - 1]
         k = appar_order_table[j - 1]
 
-    return (T[:-1])
+    return T[:-1]
 
 
 def create_rank_table(string: str) -> list[int]:

@@ -89,7 +89,7 @@ def reccursive_sort_s11(init_seq, last_tp=None, iter=0):
     p12, r12, r12s, index, tp = computeDc3Variable(T)
     if tp.shape != np.unique(tp).shape:  # step 2 ?
         i = iter + 1
-        new_tp = reccursive_sort_s11(tp, tp, i)
+        tp = reccursive_sort_s11(tp, tp, i)
     if __name__ == "__main__":
         tools.printDc3Var(p12, r12, r12s, index, tp, iter)  ## Pour vérifier
     if iter:
@@ -99,7 +99,7 @@ def reccursive_sort_s11(init_seq, last_tp=None, iter=0):
         return index012
     else:
         # print(new_tp, p12)
-        newr12 = np.take_along_axis(p12, new_tp, axis=0)
+        newr12 = np.take_along_axis(p12, tp, axis=0)
         # print(newr12)
         p0 = np.arange(0, T.size - 2, 3)
         r0 = makeR0(p0, init_seq)
