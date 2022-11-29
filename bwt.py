@@ -50,7 +50,7 @@ def string(T, end_of_string="$"):
         T (str): string
         end_of_string (char): end of string character to append
 
-    Return:
+    Return:rankXInSubL
         bwt (str): BWT transformation of T
     """
     bwt = ""
@@ -190,9 +190,10 @@ if __name__ == "__main__":
     bwtT = string(T)
     print(bwtT)
 
-    print(f"Original suffix table {suffix_table(T)}")
-    # print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
+print(f"Original suffix table {suffix_table(T)}")
+# print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
+print(suffix_table(T))
 
-    print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
+print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
 
-    print(search_kmer_pos(T, "aaaba"))
+print(search_kmer_pos(T, "aaaba"))
