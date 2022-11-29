@@ -107,20 +107,41 @@ def step2(T, index_r12, tp, iter):
     index0 = np.take_along_axis(
         p0, index_r0, axis=0
     )  # Take an array and new index and give new array
-    merging_r0_r12(T, index_r0, index_r12)
-    print(index0)
+    index0123 = merging_r0_r12(T, index0, index_r12)
+    print(index0123)
 
 
-def get_smallest_index(T, val_12, val_0, nb_loop=0):
+def get_smallest_index(T, val_12, val_0):  # Maybe too long
     T_12 = T[val_12]
     T_0 = T[val_0]
     if T_12 != T_0:
         if min(T_0, T_12) == T_0:
-            return (val_0 - nb_loop, "0")
+            return (val_0, "0")
         else:
-            return (val_12 - nb_loop, "12")
+            return (val_12, "12")
     else:
-        get_smallest_index(T, val_12 + 1, val_0 + 1, nb_loop + 1)
+        if val_12 % 3 == 1:
+            if (
+                min(val_12, val_0) == val_0
+            ):  # We check smallest value bc already ordered in r12
+                return (val_0, "0")
+            else:
+                return (val_12, "12")
+        else:
+            Tp_12 = T[val_12 + 1]
+            Tp_0 = T[val_0 + 1]
+            if Tp_12 != Tp_0:
+                if min(Tp_0, Tp_12) == Tp_0:
+                    return (val_0, "0")
+                else:
+                    return (val_12, "12")
+            else:
+                if (
+                    min(val_12, val_0) == val_0
+                ):  # We check smallest value bc already ordered in r12
+                    return (val_0, "0")
+                else:
+                    return (val_12, "12")
 
 
 def merging_r0_r12(T, index_r0, index_r12):
@@ -129,14 +150,23 @@ def merging_r0_r12(T, index_r0, index_r12):
     i_r12, i_r0 = 0, 0
     while i_r12 < size12 and i_r0 < size0:
         val_12 = index_r12[i_r12]
-        val_0 = int(index_r0[i_r0])
-        val, type = get_smallest_index(T, val_12, val_0)
-        index_table_merged[i_r0 + i_r12] = int(val)
-        if type == "0":
+        val_0 = index_r0[i_r0]
+        val, val_type = get_smallest_index(T, val_12, val_0)
+        index_table_merged[i_r0 + i_r12] = val
+        if val_type == "0":
             i_r0 += 1
         else:
             i_r12 += 1
-    print(index_table_merged)
+    if i_r12 == size12:  # Case of r12 is finished
+        while i_r0 < size0:
+            index_table_merged[i_r12 + i_r0] = index_r0[i_r0]
+            i_r0 += 1
+
+    else:
+        while i_r12 < size12:
+            index_table_merged[i_r0 + i_r12] = index_r12[i_r12]
+            i_r12 += 1
+    return index_table_merged[1:]  # Eleminate centinel
 
 
 def dc3(seq: str):  # TODO: Changer recursive_sort_s11 en DC3
