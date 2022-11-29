@@ -42,7 +42,7 @@ def suffix_table(T):
     return suffix_table
 
 
-def string(T, end_of_string="$"):
+def bwt(T, end_of_string="$"):
     """
     Compute the BWT from the suffix table
 
