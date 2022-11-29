@@ -154,61 +154,71 @@ def search_kmer_pos(genome: str, kmer: str):
     i = len(kmer) - 1
     rank = create_rank_table(bwtGen)
     rankMat = create_rank_mat(bwtGen)
+    print(f"Rank matrix: {rankMat}")
     nbOccur = 1
 
     while nbOccur > 0 and i >= 0:
         X = kmer[i]
-        print(f"i: {i}, X: {X}")
-
-        print(f"e: {e}, f: {f}")
 
         if X not in genome:
             return False
         else:
             # Because the slicing stops on the character before f, we add the
             # remaining character to not lose any information.
-            subL = bwtGen[e:f]
-            if f < lenBwt:
-                subL += bwtGen[f]
+            # subL = bwtGen[e:f]
+            # if f < lenBwt:
+            #     subL += bwtGen[f]
 
-            print(f"subL: {subL}")
+            # print(f"subL: {subL}")
 
             # If f is the size of F, we don't need to append the last character
             # because it is included in the slicing of subRank
             # print(f"rank[e:f]: {rank[e:f]}")
-            if f < lenBwt:
-                #print(f"rank[f]: {rank[f]}, type: {type(rank[f])}")
-                subRank = np.concatenate((rank[e:f], [rank[f]]))
-            else:
-                subRank = np.array(rank[e:f])
+            # if f < lenBwt:
+            #     # print(f"rank[f]: {rank[f]}, type: {type(rank[f])}")
+            #     subRank = np.concatenate((rank[e:f], [rank[f]]))
+            # else:
+            #     subRank = np.array(rank[e:f])
             # all of the ranks of characters that are present in subL
-            #print(f"subRank: {subRank}")
+            # print(f"subRank: {subRank}")
 
             # Create an empty array of the size of subRank and taking only
             # the filled part
-            rankX = np.empty(subRank.size, dtype=int)
+            # rankX = np.empty(subRank.size, dtype=int)
 
-            j = 0  # increment for subRank going throug all the array
-            k = 0  # increment for rankX stopping after
-            while j < subRank.size:
-                if subL[j] == X:
-                    rankX[k] = subRank[j]
-                    k += 1
-                j += 1
-            rankX = np.take(rankX, list(range(k)))
-            #print(f"rankXInSubL: {rankX}")
+            # j = 0  # increment for subRank going throug all the array
+            # k = 0  # increment for rankX stopping after
+            # while j < subRank.size:
+            #     if subL[j] == X:
+            #         rankX[k] = subRank[j]
+            #         k += 1
+            #     j += 1
+            # rankX = np.take(rankX, list(range(k)))
+            # print(f"rankXInSubL: {rankX}")
 
-            if rankX.size == 0:
-                nbOccur = 0
-                break
+            # if rankX.size == 0:
+            #     nbOccur = 0
+            #     break
 
-            nbOccur = rankX.size
-
-            frstOcc = bwtSort.index(X)
+            firstOcc = bwtSort.index(X) - 1  # don't take the $ into account
 
             # contains all the occurences of X in F
-            e = frstOcc + rankX[0]
-            f = frstOcc + rankX[-1]
+            e = firstOcc + rankMat[X][e]
+            f = firstOcc + rankMat[X][f if f < lenBwt else f - 1]
+
+            print(f"i: {i}, X: {X}")
+            print(f"e: {e}, f: {f}")
+
+            nbOccur = f - e  # quantity of elements between 2 indexes
+
+            if nbOccur == 0:
+                return False, nbOccur
+
+            # if i == len(kmer) - 1:
+            #     nbOccur += 1
+
+            print(f"Number of kmer: {nbOccur}")
+
             i -= 1
 
             # True if the entire pattern is crossed
@@ -238,4 +248,4 @@ if __name__ == "__main__":
     # print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
     print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
 
-    print(search_kmer_pos(T, "ATA"))
+    print(search_kmer_pos(T, "TAATA"))
