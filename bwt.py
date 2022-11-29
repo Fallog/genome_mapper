@@ -42,7 +42,7 @@ def suffix_table(T):
     return suffix_table
 
 
-def string(T, end_of_string="$"):
+def bwt(T, end_of_string="$"):
     """
     Compute the BWT from the suffix table
 
@@ -53,15 +53,15 @@ def string(T, end_of_string="$"):
     Return:rankXInSubL
         bwt (str): BWT transformation of T
     """
-    bwt = ""
+    bwtStr = ""
 
     T += end_of_string
     s_table = suffix_table(T)  # Has to be replace by DC3 algorithm
 
     for tuple in s_table:
         index = tuple[1]
-        bwt += T[index - 1]
-    return (bwt)
+        bwtStr += T[index - 1]
+    return bwtStr
 
 
 def efficient_inverse_BWT(bwt, end_of_string="$"):
@@ -123,7 +123,7 @@ def search_kmer_pos(genome: str, kmer: str):
         bool: true if the pattern is in the string
     """
     isKmerIn = False
-    L = string(genome)
+    L = bwt(genome)
     F = list(L)
     F.sort()
     e = 0
@@ -187,7 +187,7 @@ def search_kmer_pos(genome: str, kmer: str):
 if __name__ == "__main__":
     T = "abaaba"
 
-    bwtT = string(T)
+    bwtT = bwt(T)
     print(bwtT)
 
 print(f"Original suffix table {suffix_table(T)}")
@@ -196,4 +196,4 @@ print(suffix_table(T))
 
 print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
 
-print(search_kmer_pos(T, "aaaba"))
+print(search_kmer_pos(T, "rudwaaaba"))
