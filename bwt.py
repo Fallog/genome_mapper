@@ -182,6 +182,7 @@ def search_kmer_pos(genome: str, kmer: str):
         return isKmerIn, nbOccur
 
     return isKmerIn, nbOccur
+    pass
 
 
 if __name__ == "__main__":
