@@ -202,6 +202,7 @@ def dc3(seq: str):  # TODO: Changer recursive_sort_s11 en DC3
 
 
 if __name__ == "__main__":
+    print(dc3("abcabcacab"))
     # s = "abcabcacab"
     # iter_dict = {}
 
