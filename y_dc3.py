@@ -36,12 +36,12 @@ def makeTriplet(t_list: array, p12_list: array) -> array:
     return r12
 
 
-def makeR0(p0, tp):
+def makeR0(p0, tp, index):
     y = p0.size
     r0 = np.empty((y), dtype=[("1", int), ("2", int)])
     for i in range(y):  # TODO: TO UPGRADE
         r0[i][0] = int(tp[p0[i]])
-        r0[i][1] = p0[i]  # NOT SURE
+        r0[i][1] = np.where(index == p0[i] + 1)[0][0]  # NOT SURE
     return r0
 
 
@@ -85,7 +85,6 @@ def reccursive_sort_s11(init_seq, iter=0):
     """
     T = np.concatenate((init_seq, np.zeros(3)))
     p12, r12, r12s, index, tp = computeDc3Variable(T)
-    print(r12)
     if tp.shape != np.unique(tp).shape:  # step 2 ?
         i = iter + 1
         tp, r12 = reccursive_sort_s11(tp, i)
@@ -95,16 +94,14 @@ def reccursive_sort_s11(init_seq, iter=0):
         tools.printDc3Var(p12, r12, r12s, index, tp, iter)  ## Pour vérifier
     if iter:
         p0 = np.arange(0, T.size - 2, 3)
-        r0 = makeR0(p0, init_seq)
+        r0 = makeR0(p0, init_seq, index)
         index012 = step2(T, index, r0, p0)
-        newr12 = np.take_along_axis(p12, tp, axis=0)
+        newr12 = np.take_along_axis(p12, tp - 1, axis=0)
         return index012, newr12
     else:
-        print(p12, tp, r12)
         # print(newr12)
         p0 = np.arange(0, tp.size, 3)
-        r0 = makeR0(p0, T)
-        print(p0, r0, T)
+        r0 = makeR0(p0, T, index)
         res = step2(T, index, r0, p0)  ## TODO: A TROUVER [5 2 3 0 4 1]
         return res
 
@@ -160,13 +157,11 @@ def get_smallest_index(T, val_12, val_0, r12):  # TODO: ULTRA MOCHE MAIS CA MARC
 
 
 def merging_r0_r12(T, index_r0, index_r12):
-    # print(T)
     size12, size0 = index_r12.size, index_r0.size
     index_table_merged = np.empty(size12 + size0, dtype=int)
     i_r12, i_r0 = 0, 0
     while i_r12 < size12 and i_r0 < size0:
         val_12 = index_r12[i_r12]
-        print(val_12, index_r12)
         val_0 = index_r0[i_r0]
         val, val_type = get_smallest_index(T, val_12, val_0, index_r12)
         index_table_merged[i_r0 + i_r12] = val
@@ -182,7 +177,10 @@ def merging_r0_r12(T, index_r0, index_r12):
         while i_r12 < size12:
             index_table_merged[i_r0 + i_r12] = index_r12[i_r12]
             i_r12 += 1
-    return index_table_merged[1:]  # Eleminate centinel
+    if T.size % 3 == 0:
+        return index_table_merged
+    else:
+        return index_table_merged[1:]  # Eleminate centinel
 
 
 def dc3(seq: str):  # TODO: Changer recursive_sort_s11 en DC3
@@ -193,8 +191,8 @@ def dc3(seq: str):  # TODO: Changer recursive_sort_s11 en DC3
 
 
 if __name__ == "__main__":
-    # print(dc3("abcabcacab"))
-    print(dc3("abaaba"))
+    print(f"Suffixe table is finally : {dc3('abcabcacab')}")
+    print(f"Suffixe table is finally : {dc3('abaaba')}")
     # s = "abcabcacab"
     # iter_dict = {}
 
