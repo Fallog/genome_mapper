@@ -1,4 +1,4 @@
-import y_dc3
+from y_dc3 import dc3, np
 
 
 def suffix_list(T):
@@ -103,9 +103,19 @@ def efficient_inverse_BWT(bwtStr: str, end_of_string: str = "$") -> str:
     return T[:-1]
 
 
-def create_rank_table(string: str) -> list[int]:
+def create_rank_table(string: str) -> np.array:
+    """Returns the array of the rank of each character in the string
+    argument. The rank of a character represents the number of
+    occurences of the same character before it in the string.
+
+    Args:
+        string (str): a string
+
+    Returns:
+        np.array[int]: contains the ranks of each character in string
+    """
     strLen = len(string)
-    rank = [0] * strLen
+    rank = np.empty(strLen, dtype=int)  # Performance
     for i in range(strLen):
         # Counting elements before bwt[i] that are similar to bwt[i]
         rank[i] = string[:i].count(string[i])
@@ -114,8 +124,7 @@ def create_rank_table(string: str) -> list[int]:
 
 
 def search_kmer_pos(genome: str, kmer: str):
-    """
-    Search a pattern in a String using the BWT
+    """Search a pattern in a String using the BWT
 
     Args:
         S (str): string
@@ -125,79 +134,96 @@ def search_kmer_pos(genome: str, kmer: str):
         bool: true if the pattern is in the string
     """
     isKmerIn = False
-    L = bwt(genome)
-    F = list(L)
-    F.sort()
+
+    bwtGen = bwt(genome)
+    lenBwt = len(bwtGen)
+    bwtSort = list(bwtGen)
+    bwtSort.sort()
     e = 0
-    f = len(F)
+    f = lenBwt
     i = len(kmer) - 1
-    rank = create_rank_table(L)
+    rank = create_rank_table(bwtGen)
     nbOccur = 1
 
     while nbOccur > 0 and i >= 0:
         X = kmer[i]
+        print(f"i: {i}, X: {X}")
 
-        # Because the slicing stops on the character before f, we add the
-        # remaining character to not lose any information.
-        subL = L[e:f] + L[f if f < len(F) else f:]
-        print(f"subL: {subL}")
+        print(f"e: {e}, f: {f}")
 
-        # If f is the size of F, we don't need to append the last character
-        # because it is included in the slicing of subRank
-        # all of the ranks of characters that are present in subL
-        subRank = rank[e:f] + ([rank[f]] if f < len(F) else [])
-        print(f"subRank: {subRank}")
-
-        rankXInSubL = []
-        for j in range(len(subRank)):
-            if subL[j] == X:
-                rankXInSubL.append(subRank[j])
-        print(f"rankList: {rankXInSubL}")
-
-        if len(rankXInSubL) == 0:
-            nbOccur = 0
-            break
-
-        nbOccur = len(rankXInSubL)
-
-        if X not in subL:
-            break
+        if X not in genome:
+            return False
         else:
-            fstOcc = F.index(X)
-            e = F.index(X)  # e is the index of first X in the sorted BWT
-            f = len(F) - 1 - F[::-1].index(X)  # same for f but with last X
+            # Because the slicing stops on the character before f, we add the
+            # remaining character to not lose any information.
+            subL = bwtGen[e:f]
+            if f < lenBwt:
+                subL += bwtGen[f]
+
+            print(f"subL: {subL}")
+
+            # If f is the size of F, we don't need to append the last character
+            # because it is included in the slicing of subRank
+            print(f"rank[e:f]: {rank[e:f]}")
+            if f < lenBwt:
+                print(f"rank[f]: {rank[f]}, type: {type(rank[f])}")
+                subRank = np.concatenate((rank[e:f], [rank[f]]))
+            else:
+                subRank = np.array(rank[e:f])
+            # all of the ranks of characters that are present in subL
+            print(f"subRank: {subRank}")
+
+            # Create an empty array of the size of subRank and taking only
+            # the filled part
+            rankX = np.empty(subRank.size, dtype=int)
+
+            j = 0  # increment for subRank going throug all the array
+            k = 0  # increment for rankX stopping after
+            while j < subRank.size:
+                if subL[j] == X:
+                    rankX[k] = subRank[j]
+                    k += 1
+                j += 1
+            rankX = np.take(rankX, list(range(k)))
+            print(f"rankXInSubL: {rankX}")
+
+            if rankX.size == 0:
+                nbOccur = 0
+                break
+
+            nbOccur = rankX.size
+
+            frstOcc = bwtSort.index(X)
 
             # contains all the occurences of X in F
-            allX = F[e:f] + ([F[f]] if f < len(F) else [])
-            print(f"All the occurences of {X}: {allX}")
-            e = fstOcc + rankXInSubL[0]
-            print(f"Index of the first occurence of {X} in F: {e}")
-            f = fstOcc + rankXInSubL[-1]
-            print(f"Index of the last occurence of {X} in F: {f}")
-
+            e = frstOcc + rankX[0]
+            f = frstOcc + rankX[-1]
             i -= 1
 
-    # False if the first letter is not in the pattern argument
-    # True if the entire pattern is crossed
-    if i == -1 and kmer[0] in genome:
-        isKmerIn = True
-        return isKmerIn, nbOccur
+            # True if the entire pattern is crossed
+            if i == -1:
+                isKmerIn = True
+                return isKmerIn, nbOccur
 
     return isKmerIn, nbOccur
 
 
 if __name__ == "__main__":
     T = "abaaba"
+    # T = "abcabcacab"
+    arr = np.array([1, 3, 5, 7, 9])
+    emptArr = np.array(arr[1])
+    print(f"Test: {emptArr}, type: {type(emptArr)}")
 
     bwtT = bwt(T)
     print(bwtT)
+
+    print(f"Rank table of T: {create_rank_table(T)}")
 
     print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
 
     print(f"Original suffix table {suffix_table(T)}")
     # print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
-    print(suffix_table(T))
-
     print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
 
-    print(search_kmer_pos(T, "rudwaaaba"))
+    print(search_kmer_pos(T, "ababa"))
