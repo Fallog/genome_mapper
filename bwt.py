@@ -103,33 +103,25 @@ def efficient_inverse_BWT(bwtStr: str, end_of_string: str = "$") -> str:
     return T[:-1]
 
 
-def create_rank_table(string: str) -> np.array:
-    """Returns the array of the rank of each character in the string
-    argument. The rank of a character represents the number of
-    occurences of the same character before it in the string.
+def create_rank_mat(dnaSeq: str) -> dict:
+    """Returns a dict storing the rank tables of each character in
+    the dnaSeq argument. Because the DNA is exclusively made of A, T,
+    C and G, the returned dict will contain 5 keys, the 4 bases and a $
+    specifying the end of the sequence.
 
     Args:
-        string (str): a string
+        dnaSeq (str): a string made only with A, T, C, G and a $
 
     Returns:
-        np.array[int]: contains the ranks of each character in string
+        dict: contains 5 character keys, each key is mapped with the
+            rank table in the dnaSeq of the associated character
     """
-    strLen = len(string)
-    rank = np.empty(strLen, dtype=int)  # Performance
-    for i in range(strLen):
-        # Counting elements before bwt[i] that are similar to bwt[i]
-        rank[i] = string[:i].count(string[i])
-
-    return rank
-
-
-def create_rank_mat(string: str) -> dict:
     alphabet = ['A', 'T', 'C', 'G', '$']
     rkMat = {}
-    lenStr = len(string)
+    lenStr = len(dnaSeq)
     for letter in alphabet:
         # :(i + 1) because we want to include the first & last char of string
-        rkMat[letter] = [string[:(i + 1)].count(letter) for i in range(lenStr)]
+        rkMat[letter] = [dnaSeq[:(i + 1)].count(letter) for i in range(lenStr)]
     return rkMat
 
 
@@ -150,9 +142,9 @@ def search_kmer_pos(genome: str, kmer: str):
     bwtSort = list(bwtGen)
     bwtSort.sort()
     e = 0
-    f = lenBwt
-    i = len(kmer) - 1
-    rank = create_rank_table(bwtGen)
+    f = lenBwt - 1  # Stay in the string boundaries
+    i = len(kmer) - 1  # Stay in the kmer boundaries
+    # rank = create_rank_table(bwtGen)
     rankMat = create_rank_mat(bwtGen)
     print(f"Rank matrix: {rankMat}")
     nbOccur = 1
@@ -163,61 +155,31 @@ def search_kmer_pos(genome: str, kmer: str):
         if X not in genome:
             return False
         else:
-            # Because the slicing stops on the character before f, we add the
-            # remaining character to not lose any information.
-            # subL = bwtGen[e:f]
-            # if f < lenBwt:
-            #     subL += bwtGen[f]
+            print(f"Rank table of {X}: {rankMat[X]}")
 
-            # print(f"subL: {subL}")
+            firstOcc = bwtSort.index(X) - 1  # $ isn't taken into account
+            print(f"First index of {X} in bwtSort: {firstOcc}")
 
-            # If f is the size of F, we don't need to append the last character
-            # because it is included in the slicing of subRank
-            # print(f"rank[e:f]: {rank[e:f]}")
-            # if f < lenBwt:
-            #     # print(f"rank[f]: {rank[f]}, type: {type(rank[f])}")
-            #     subRank = np.concatenate((rank[e:f], [rank[f]]))
-            # else:
-            #     subRank = np.array(rank[e:f])
-            # all of the ranks of characters that are present in subL
-            # print(f"subRank: {subRank}")
-
-            # Create an empty array of the size of subRank and taking only
-            # the filled part
-            # rankX = np.empty(subRank.size, dtype=int)
-
-            # j = 0  # increment for subRank going throug all the array
-            # k = 0  # increment for rankX stopping after
-            # while j < subRank.size:
-            #     if subL[j] == X:
-            #         rankX[k] = subRank[j]
-            #         k += 1
-            #     j += 1
-            # rankX = np.take(rankX, list(range(k)))
-            # print(f"rankXInSubL: {rankX}")
-
-            # if rankX.size == 0:
-            #     nbOccur = 0
-            #     break
-
-            firstOcc = bwtSort.index(X) - 1  # don't take the $ into account
-
-            # contains all the occurences of X in F
-            e = firstOcc + rankMat[X][e]
-            f = firstOcc + rankMat[X][f if f < lenBwt else f - 1]
-
-            print(f"i: {i}, X: {X}")
+            # The first character of the BWT has a rank of 1 in the rank
+            # matrix but it is the first appearance of this character.
+            # To take into account this information, we decrease e of 1 in
+            # presence of this character, when there is no character before it
+            if len(bwtGen[:(e + firstOcc)]) == 0:
+                e = firstOcc + rankMat[X][e] - 1
+            else:
+                e = firstOcc + rankMat[X][e]
+            f = firstOcc + rankMat[X][f]
             print(f"e: {e}, f: {f}")
+
+            print(f"e after condition: {e}")
+            print(f"i: {i}, X: {X}")
 
             nbOccur = f - e  # quantity of elements between 2 indexes
 
             if nbOccur == 0:
-                return False, nbOccur
+                return False
 
-            # if i == len(kmer) - 1:
-            #     nbOccur += 1
-
-            print(f"Number of kmer: {nbOccur}")
+            print(f"Number of pattern: {nbOccur}\n")
 
             i -= 1
 
@@ -245,7 +207,6 @@ if __name__ == "__main__":
     print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
 
     print(f"Original suffix table {suffix_table(T)}")
-    # print(f"DC3 suffix table {y_dc3.dc3(T)}")  # TODO: À FAIRE MARCHER LOL
     print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
 
-    print(search_kmer_pos(T, "TAATA"))
+    print(search_kmer_pos(T, "ATA"))
