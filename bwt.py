@@ -201,12 +201,10 @@ if __name__ == "__main__":
     bwtT = bwt(T)
     print(bwtT)
 
-    print(f"Rank table of T: {create_rank_table(T)}")  # OK
     print(f"Rank matrix of T: {create_rank_mat(bwtT)}")  # OK
 
     print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
 
     print(f"Original suffix table {suffix_table(T)}")
-    print(create_rank_table(T) == [0, 0, 1, 2, 1, 3])  # OK
 
     print(search_kmer_pos(T, "ATA"))
