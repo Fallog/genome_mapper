@@ -1,10 +1,9 @@
-# import numpy   ## A convertir en numpy
 from array import array
 import numpy as np
 import tools
 
 
-def makeP12(t_list: array) -> array:
+def make_p12(t_list: array) -> array:
     """Create P12 : Take all the n+1%3 and n+2%3 iif < N-2
 
     Args:
@@ -19,7 +18,7 @@ def makeP12(t_list: array) -> array:
     return np.concatenate((p1, p2))
 
 
-def makeTriplet(t_list: array, p12_list: array) -> array:
+def make_triplet(t_list: array, p12_list: array) -> array:
     """Create triplet with p12_array : Do of array of 3 from the T array respecting :
     [T[p12][i] ,T[p12][i] +1 ,T[p12][i] + 2] for each element of p12.
 
@@ -36,7 +35,7 @@ def makeTriplet(t_list: array, p12_list: array) -> array:
     return r12
 
 
-def makeR0(p0, tp, index):
+def make_r0(p0, tp, index):
     """Make R0 : list of list of 2 int. In the following form :
     r0[i][0] = T[p0[i]] with T = T or T' (tp) if not the first iteration
     r0[i][0] = index of p0[i]+1 in the list of index of R12 after sort
@@ -59,7 +58,7 @@ def makeR0(p0, tp, index):
     return r0
 
 
-def computeDc3Variable(T, sorting_algorithm):
+def compute_dc3_variable(T, sorting_algorithm):
     """
     Compute all DC3 variable computed in the first step and return it
 
@@ -73,8 +72,8 @@ def computeDc3Variable(T, sorting_algorithm):
         index (array): list of index of R12 after sort
     """
 
-    p12 = makeP12(T)
-    r12 = makeTriplet(T, p12)
+    p12 = make_p12(T)
+    r12 = make_triplet(T, p12)
     r12s = np.copy(r12)
     index_list = np.argsort(r12s, kind=sorting_algorithm, order=("1", "2", "3"))
     index = np.take_along_axis(p12, index_list, axis=0)
@@ -106,7 +105,7 @@ def reccursive_sort_s11(init_seq, sorting_algorithm, iter=0, print_var=False):
         array: Suffix array sorted
     """
     T = np.concatenate((init_seq, np.zeros(3)))
-    p12, r12, r12s, index = computeDc3Variable(T, sorting_algorithm)
+    p12, r12, r12s, index = compute_dc3_variable(T, sorting_algorithm)
     if r12.shape != np.unique(r12, axis=0).shape:
         tp = make_tp(r12s, r12)
         i = iter + 1
@@ -116,13 +115,13 @@ def reccursive_sort_s11(init_seq, sorting_algorithm, iter=0, print_var=False):
         tools.printDc3Var(p12, r12, r12s, index, T, iter)  # To check
     if iter:
         p0 = np.arange(0, init_seq.size, 3)
-        r0 = makeR0(p0, init_seq, index)
+        r0 = make_r0(p0, init_seq, index)
         index012 = step2(T, index, r0, p0)
         # Index012 is corresponding of index des index d'avant
         return index012
     else:
         p0 = np.arange(0, init_seq.size, 3)  # init_seq = T sans les 0 psq iter = 0
-        r0 = makeR0(p0, init_seq, index)
+        r0 = make_r0(p0, init_seq, index)
         res = step2(T, index, r0, p0)
         return res
 
@@ -242,8 +241,11 @@ def merging_r0_r12(T, index_r0, index_r12):
         return index_table_merged[1:]  # Eleminate centinel
 
 
-def dc3(seq: str, sorting_algorithm: str = "mergesort"):
-    T = tools.strToAscii(seq)
+def dc3(seq: str, is_seq_to_ascii: bool = False, sorting_algorithm: str = "mergesort"):
+    if is_seq_to_ascii:
+        T = tools.strToAscii(seq)
+    else:
+        T = tools.strToBase(seq)
     suffix_array = reccursive_sort_s11(T, sorting_algorithm)
     return suffix_array
 
@@ -255,7 +257,7 @@ if __name__ == "__main__":
         "abaaba": [5, 2, 3, 0, 4, 1],
     }
     for i, (key, val) in enumerate(test_result_dic.items()):
-        test = dc3(key)
+        test = dc3(key, is_seq_to_ascii=True)
         print(
             f"""\n--- TEST {i+1} ---
 Test with n%3=1 char string. Suffix array obtened = {test}
