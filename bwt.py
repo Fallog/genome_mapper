@@ -42,25 +42,26 @@ def suffix_table(T):
     return suffix_table
 
 
-def bwt(T, end_of_string="$"):
+def bwt(string, end_of_string="$"):
     """
     Compute the BWT from the suffix table
 
     Args:
-        T (str): string
-        end_of_string (char): end of string character to append
+        string (str): string
+        end_of_string (char): appended character specifying the end of
+            the string
 
-    Return:rankXInSubL
+    Return:
         bwt (str): BWT transformation of T
     """
     bwtStr = ""
 
-    T += end_of_string
-    s_table = suffix_table(T)  # Has to be replace by DC3 algorithm
+    string += end_of_string
+    s_table = suffix_table(string)  # Has to be replace by DC3 algorithm
 
     for tuple in s_table:
         index = tuple[1]
-        bwtStr += T[index - 1]
+        bwtStr += string[index - 1]
     return bwtStr
 
 
@@ -126,10 +127,12 @@ def create_rank_mat(dnaSeq: str) -> dict:
 
 
 def search_kmer_pos(genome: str, kmer: str):
-    """Search a pattern in a String using the BWT
+    """Search a pattern in a String using the BWT.
 
     Args:
-        S (str): string
+        genome (str): a string made only with A, T, C, G
+        suffix_tab (list[int]): sorted array of all the suffixes of
+            genome
         pattern (str): pattern we are looking for
 
     Return:
@@ -137,14 +140,16 @@ def search_kmer_pos(genome: str, kmer: str):
     """
     isKmerIn = False
 
+    # To be passed in argument to avoid computing each time
     bwtGen = bwt(genome)
-    lenBwt = len(bwtGen)
     bwtSort = list(bwtGen)
     bwtSort.sort()
+
+    lenBwt = len(bwtGen)
     e = 0
     f = lenBwt - 1  # Stay in the string boundaries
     i = len(kmer) - 1  # Stay in the kmer boundaries
-    # rank = create_rank_table(bwtGen)
+
     rankMat = create_rank_mat(bwtGen)
     print(f"Rank matrix: {rankMat}")
     nbOccur = 1
@@ -155,6 +160,7 @@ def search_kmer_pos(genome: str, kmer: str):
         if X not in genome:
             return False
         else:
+            print(f"i: {i}, X: {X}")
             print(f"Rank table of {X}: {rankMat[X]}")
 
             firstOcc = bwtSort.index(X) - 1  # $ isn't taken into account
@@ -171,14 +177,9 @@ def search_kmer_pos(genome: str, kmer: str):
             f = firstOcc + rankMat[X][f]
             print(f"e: {e}, f: {f}")
 
-            print(f"e after condition: {e}")
-            print(f"i: {i}, X: {X}")
-
             nbOccur = f - e  # quantity of elements between 2 indexes
-
             if nbOccur == 0:
                 return False
-
             print(f"Number of pattern: {nbOccur}\n")
 
             i -= 1
