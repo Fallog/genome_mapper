@@ -37,7 +37,6 @@ def makeTriplet(t_list: array, p12_list: array) -> array:
 
 
 def makeR0(p0, tp, index):
-    print(f"tp = {tp}, but p0 = {p0} and index = {index}")
     y = p0.size
     r0 = np.empty((y), dtype=[("1", int), ("2", int)])
     for i in range(y):  # TODO: TO UPGRADE
@@ -80,7 +79,7 @@ def make_tp(r12s, r12):
     return tp
 
 
-def reccursive_sort_s11(init_seq, iter=0):
+def reccursive_sort_s11(init_seq, iter=0, print_var=False):
     """Do the reccusrive sort to eliminate all value in double
 
     Args:
@@ -91,33 +90,21 @@ def reccursive_sort_s11(init_seq, iter=0):
     T = np.concatenate((init_seq, np.zeros(3)))
     p12, r12, r12s, index = computeDc3Variable(T)
     if r12.shape != np.unique(r12, axis=0).shape:  # step 2 ?
-        print(r12s, r12)
         tp = make_tp(r12s, r12)
         i = iter + 1
-        print(tp, "hihi")
         index012 = reccursive_sort_s11(tp, i)
-        print(p12, index012)
         index = np.take_along_axis(p12, index012, axis=0)  # r12 = index12 sur mon cours
-        print(r12, "slt", iter)
-    if __name__ == "__main__":
+    if __name__ == "__main__" and print_var:
         tools.printDc3Var(p12, r12, r12s, index, T, iter)  # Pour vérifier
     if iter:
-        print(iter)
-        print(T, "lo")
         p0 = np.arange(0, init_seq.size, 3)
         r0 = makeR0(p0, init_seq, index)
         index012 = step2(T, index, r0, p0)
         # Index012 is corresponding of index des index d'avant
-        # print(init_seq, index012)
-        # newr12 = np.take_along_axis(p12, index012, axis=0)
-        # print(newr12, "r12")
         return index012
     else:
-        # print(newr12)
-        print(f"iter = {iter}")
         p0 = np.arange(0, init_seq.size, 3)  # init_seq = T sans les 0 psq iter = 0
         r0 = makeR0(p0, init_seq, index)
-        print("AYAYAYA", index)
         res = step2(T, index, r0, p0)
         return res
 
@@ -129,13 +116,11 @@ def step2(T, index_r12, r0, p0):
     index0 = np.take_along_axis(
         p0, index_r0, axis=0
     )  # Take an array and new index and give new array
-    print(r0, index0)
     index012 = merging_r0_r12(T, index0, index_r12)
     return index012
 
 
 def get_smallest_index(T, val_12, val_0, r12):  # TODO: ULTRA MOCHE MAIS CA MARCHE
-    # print(T, val_12, val_0)
     T_12 = T[val_12]
     T_0 = T[val_0]
     if T_12 != T_0:
@@ -207,6 +192,15 @@ def dc3(seq: str):  # TODO: Changer recursive_sort_s11 en DC3
 
 
 if __name__ == "__main__":
-    print(f"Suffixe table is finally : {dc3('abcabcacab')}")
-    print(f"Suffixe table is finally : {dc3('ab')}")
-    print(f"Suffixe table is finally : {dc3('abaaba')}")
+    test_result_dic = {
+        "abcabcacab": [8, 0, 3, 6, 9, 1, 4, 7, 2, 5],
+        "ab": [0, 1],
+        "abaaba": [5, 2, 3, 0, 4, 1],
+    }
+    for i, (key, val) in enumerate(test_result_dic.items()):
+        test = dc3(key)
+        print(
+            f"""\n--- TEST {i+1} ---
+Test with n%3=1 char string. Suffix array obtened = {test}
+Is equal to the theorical result ? {(test == val).all()} !"""
+        )
