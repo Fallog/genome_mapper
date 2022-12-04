@@ -1,4 +1,4 @@
-from y_dc3 import dc3, np
+from y_dc3 import dc3
 
 
 def suffix_list(T):
@@ -57,11 +57,37 @@ def bwt(string, end_of_string="$"):
     bwtStr = ""
 
     string += end_of_string
+
     s_table = suffix_table(string)  # Has to be replace by DC3 algorithm
+    print(f"Suffix table (classical): {s_table}")
 
     for tuple in s_table:
         index = tuple[1]
         bwtStr += string[index - 1]
+    return bwtStr
+
+
+def bwt_dc3(string, end_of_string="$"):
+    """
+    Compute the BWT from the suffix
+
+    Args:
+        string (str): string
+        end_of_string (char): appended character specifying the end of
+            the string
+
+    Return:
+        bwt (str): BWT transformation of T
+    """
+    bwtStr = ""
+    string += end_of_string
+
+    s_table = dc3(string)
+    print(f"Suffix table (dc3): {s_table}")
+
+    for suffix_pos in s_table:
+        bwtStr += string[suffix_pos - 1]
+
     return bwtStr
 
 
@@ -195,17 +221,16 @@ def search_kmer_pos(genome: str, kmer: str):
 if __name__ == "__main__":
     T = "ATAATA"
     # T = "abcabcacab"
-    arr = np.array([1, 3, 5, 7, 9])
-    emptArr = np.array(arr[1])
-    print(f"Test: {emptArr}, type: {type(emptArr)}")
 
     bwtT = bwt(T)
-    print(bwtT)
+    print(f"BWT from suffix table: {bwtT}")
 
-    print(f"Rank matrix of T: {create_rank_mat(bwtT)}")  # OK
+    bwtDC3 = bwt_dc3(T)
+    print(f"Is the BWT DC3 the same ? {bwtDC3 == bwtT}")
+    print(f"BWT DC3: {bwtDC3}")
 
     print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
 
-    print(f"Original suffix table {suffix_table(T)}")
+    # print(f"Rank matrix of T: {create_rank_mat(bwtT)}")  # OK
 
-    print(search_kmer_pos(T, "ATA"))
+    # print(search_kmer_pos(T, "ATA"))
