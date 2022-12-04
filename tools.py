@@ -3,7 +3,7 @@
 import numpy as np
 
 
-def strToAscii(text: str):  # ya un numpy loadtxt qui existe
+def strToAscii(text: str):  # USELESS
     """Transform a string to is Ascii value ant put it in a numpy array
     TO DO : update for DNA (A --> 1 : C --> 2 : G --> 3 : T --> 4)
 
@@ -21,14 +21,16 @@ def strToBase(text: str):
     text = text.upper()
     res_array = np.empty(len(text))
     for i in range(len(text)):
-        if text[i] == "A":
+        if text[i] == "$":
             res_array[i] = 1
-        elif text[i] == "C":
+        if text[i] == "A":
             res_array[i] = 2
-        elif text[i] == "G":
+        elif text[i] == "C":
             res_array[i] = 3
-        else:
+        elif text[i] == "G":
             res_array[i] = 4
+        else:
+            res_array[i] = 5
     return res_array
 
 
@@ -74,7 +76,7 @@ def cut_read_to_kmer(read: str, k_len: int) -> list[str]:
     read_cnt = 0
     k_cnt = 0
     while read_cnt <= read_len - k_len:
-        kmer_l[k_cnt] = read[read_cnt:read_cnt + k_len]
+        kmer_l[k_cnt] = read[read_cnt : read_cnt + k_len]
         read_cnt += k_len
         k_cnt += 1
 
@@ -98,14 +100,14 @@ def inverse_sequence(dnaSeq: str) -> str:
     for i in range(seqLen):
         base = dnaSeq[i]
         # dnaSeqInv is built backwards because it the inversed of dnaSeq
-        if base == 'A':
-            dnaSeqInv[-(i + 1)] = 'T'
-        elif base == 'T':
-            dnaSeqInv[-(i + 1)] = 'A'
-        elif base == 'C':
-            dnaSeqInv[-(i + 1)] = 'G'
+        if base == "A":
+            dnaSeqInv[-(i + 1)] = "T"
+        elif base == "T":
+            dnaSeqInv[-(i + 1)] = "A"
+        elif base == "C":
+            dnaSeqInv[-(i + 1)] = "G"
         else:
-            dnaSeqInv[-(i + 1)] = 'C'
+            dnaSeqInv[-(i + 1)] = "C"
     return "".join(dnaSeqInv)  # Recreate a string
 
 
