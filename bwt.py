@@ -82,7 +82,7 @@ def bwt_dc3(string, end_of_string="$"):
     bwtStr = ""
     string += end_of_string
 
-    s_table = dc3(string)
+    s_table = dc3(string, is_seq_to_ascii=True)
     print(f"Suffix table (dc3): {s_table}")
 
     for suffix_pos in s_table:
