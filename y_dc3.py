@@ -172,12 +172,14 @@ def get_smallest_index(T, val_12, val_0, index_r12):  # TODO: Maybe change to op
             return (val_12, "12")
     else:
         if val_12 % 3 == 1 or val_0 % 3 == 1:
+            test12 = np.where(index_r12 == val_12 + 1)[0][0]
+            test0 = np.where(index_r12 == val_0 + 1)[0][0]
             if (
                 min(
-                    np.where(index_r12 == val_12 + 1)[0][0],
-                    np.where(index_r12 == val_0 + 1)[0][0],
+                    test12,
+                    test0,
                 )
-                == np.where(index_r12 == val_0 + 1)[0][0]
+                == test0
             ):  # We check smallest value bc already ordered in r12
                 return (val_0, "0")
             else:
@@ -191,12 +193,14 @@ def get_smallest_index(T, val_12, val_0, index_r12):  # TODO: Maybe change to op
                 else:
                     return (val_12, "12")
             else:
+                test12 = np.where(index_r12 == val_12 + 2)[0][0]
+                test0 = np.where(index_r12 == val_0 + 2)[0][0]
                 if (
                     min(
-                        np.where(index_r12 == val_12 + 2)[0][0],
-                        np.where(index_r12 == val_0 + 2)[0][0],
+                        test12,
+                        test0,
                     )
-                    == np.where(index_r12 == val_0 + 2)[0][0]
+                    == test0
                 ):  # We check smallest value bc already ordered in r12
                     return (val_0, "0")
                 else:
