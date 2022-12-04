@@ -58,13 +58,13 @@ def printDc3Var(p12, r12, r12s, index, tp, iter=-1) -> None:
     print(str_to_print)
 
 
-def cut_read_to_kmer(read: str, k_len) -> list[str]:
+def cut_read_to_kmer(read: str, k_len: int) -> list[str]:
     """Divide the given read argument into a list of k-mer, i.e. smaller strings,
     of size the k_len argument.
 
     Args:
         read (str): str made of the characters 'A', 'T', 'C' and 'G'
-        k_len (_type_): size of the k-mer to be created from the read sequence
+        k_len (int): size of the k-mer to be created from the read sequence
 
     Returns:
         list[str]: list of all the k-mer created from the read argument
@@ -116,31 +116,6 @@ if __name__ == "__main__":
     frag = "TTTCCTTTTT"
     invFrag = "AAAAAGGAAA"
     print(f"Inversing test: {inverse_sequence(frag) == invFrag}")  # OK
-
-    # liste = np.array(
-    #     [
-    #         (5, 28, 1),
-    #         (9, 111, 9),
-    #         (9, 1, 5),
-    #         (99, 1, 9),
-    #         (2, 1, 89),
-    #         (29, 19, 1),
-    #     ],
-    #     dtype=[("1", int), ("2", int), ("3", int)],
-    # )
-
-    # random.seed(12)
-    # datatest = [
-    #     (random.randint(1, 4), random.randint(1, 4), random.randint(1, 4))
-    #     for i in range(500000)
-    # ]
-
-    # datatest = np.array(datatest, dtype=[("1", int), ("2", int), ("3", int)])
-
-    # # print(datatest)
-
-    # print(liste)
-    # res = quickSort(liste)
-    # print(liste)
-    # print(res)
-    # cProfile.run("quickSort(datatest)")
+    strand = "GCTTAGGAACTATACAGTT"
+    invStrand = "AACTGTATAGTTCCTAAGC"
+    print(f"Inversing test: {inverse_sequence(strand) == invStrand}")  # OK
