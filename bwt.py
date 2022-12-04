@@ -67,6 +67,30 @@ def bwt(string, end_of_string="$"):
     return bwtStr
 
 
+def bwt_dc3(string, end_of_string="$"):
+    """
+    Compute the BWT from the suffix
+
+    Args:
+        string (str): string
+        end_of_string (char): appended character specifying the end of
+            the string
+
+    Return:
+        bwt (str): BWT transformation of T
+    """
+    bwtStr = ""
+    string += end_of_string
+
+    s_table = dc3(string)
+    print(f"Suffix table (dc3): {s_table}")
+
+    for suffix_pos in s_table:
+        bwtStr += string[suffix_pos - 1]
+
+    return bwtStr
+
+
 def efficient_inverse_BWT(bwtStr: str, end_of_string: str = "$") -> str:
     """
     Returns the original string that were used to build the bwtStr
@@ -201,9 +225,11 @@ if __name__ == "__main__":
     T = "ATAATAGGATCCGA" * 500
 
     bwtT = bwt(T)
-    print(bwtT)
+    print(f"BWT from suffix table: {bwtT}")
 
-    print(f"Rank matrix of T: {create_rank_mat(bwtT)}")  # OK
+    bwtDC3 = bwt_dc3(T)
+    print(f"Is the BWT DC3 the same ? {bwtDC3 == bwtT}")
+    print(f"BWT DC3: {bwtDC3}")
 
     print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
 
