@@ -281,11 +281,8 @@ def merging_r0_r12(T, index_r0, index_r12):
         return index_table_merged[1:]  # Eleminate centinel
 
 
-def dc3(seq: str, is_seq_to_ascii: bool = False, sorting_algorithm: str = "mergesort"):
-    if is_seq_to_ascii:
-        T = tools.strToAscii(seq)
-    else:
-        T = tools.strToBase(seq)
+def dc3(seq: str, sorting_algorithm: str = "mergesort"):
+    T = tools.strToBase(seq)
     suffix_array = reccursive_sort_s11(T, sorting_algorithm)
     return suffix_array
 
