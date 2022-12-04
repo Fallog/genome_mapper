@@ -50,11 +50,14 @@ def make_r0(p0, tp, index):
     """
     y = p0.size
     r0 = np.empty((y), dtype=[("1", int), ("2", int)])
+    d = {val: i for val, i in zip(index, np.arange(index.size))}
+
     for i in range(y):
         r0[i][0] = int(tp[p0[i]])
-        r0[i][1] = (
-            np.where(index == p0[i] + 1)[0][0] + 1
-        )  # TODO: Maybe find a better way
+        r0[i][1] = d[p0[i] + 1] + 1
+        # r0[i][1] = (
+        #     np.where(index == p0[i] + 1)[0][0] + 1
+        # )  # TODO: Maybe find a better way
     return r0
 
 
@@ -85,11 +88,34 @@ def compute_dc3_variable(T, sorting_algorithm):
     return p12, r12, r12s, index
 
 
+def tuple_to_int(int_tuple: tuple) -> int:  # TODO:to put in tool
+    """Transform a tuple of 3 value to a 3 digits number
+
+    Args:
+        tuple (tuple): tuple of 3 int (only 1 digit per int)
+
+    Returns:
+        int: a 3 digits number
+    """
+    return int_tuple[0] * 100 + int_tuple[1] * 10 + int_tuple[2]
+
+
 def make_tp(r12s, r12):
     tp = np.empty(r12s.size, dtype=int)
     array_without_duplicate = np.unique(r12s)
+    # d = np.empty(array_without_duplicate.size)
+    # np.put_along_axis(
+    #     d, array_without_duplicate, np.arange(array_without_duplicate.size), axis=0
+    # )
+    d = {
+        tuple_to_int(val): i
+        for val, i in zip(
+            array_without_duplicate, np.arange(array_without_duplicate.size)
+        )
+    }
+    # print(d)
     for i, elem in enumerate(r12):
-        tp[i] = np.where(elem == array_without_duplicate)[0][0] + 1
+        tp[i] = d[tuple_to_int(elem)] + 1
     return tp
 
 
@@ -149,7 +175,7 @@ def step2(T, index_r12, r0, p0):
     return index012
 
 
-def get_smallest_index(T, val_12, val_0, index_r12):  # TODO: Maybe change to optimize
+def get_smallest_index(T, val_12, val_0, d):  # TODO: Maybe change to optimize
     """Algorithm to get the smallest value adapted to DC3 necessity
     Its needed to merge r0 and r12 when value are equals
 
@@ -163,23 +189,31 @@ def get_smallest_index(T, val_12, val_0, index_r12):  # TODO: Maybe change to op
     Returns:
         tuple: (value,"0" if belong to p0, else "12" (such that correspond to p12))
     """
+
+    ### TEST : Avec dictionnaire pas opti trop long a créer. Avec liste agissant comme un dic : même merde. Seul truc opti = .where atm
+    ### objectif : creer une liste de façon opti qui a pour chaque index r12 la valeur de l'index de l'index de r12 genre pour [5,1,4] [,1,,,2,0]. Dure de faire mieux que le .where
     T_12 = T[val_12]
     T_0 = T[val_0]
+
+    # d = np.empty(T.size + 1)
+    # np.put_along_axis(d, index_r12, np.arange(index_r12.size), axis=0)
+
     if T_12 != T_0:
-        if min(T_0, T_12) == T_0:
+        if T_0 < T_12:
             return (val_0, "0")
         else:
             return (val_12, "12")
     else:
-        if val_12 % 3 == 1 or val_0 % 3 == 1:
-            test12 = np.where(index_r12 == val_12 + 1)[0][0]
-            test0 = np.where(index_r12 == val_0 + 1)[0][0]
+        if val_12 % 3 == 1:
+            # test12 = np.where(index_r12 == val_12 + 1)[0][0]
+            # test0 = np.where(index_r12 == val_0 + 1)[0][0]
+            # print(test12, test0)
+            # print(d[val_12 + 1], d[val_0 + 1])
             if (
-                min(
-                    test12,
-                    test0,
-                )
-                == test0
+                # test0
+                # < test12
+                d[val_0 + 1]
+                < d[val_12 + 1]
             ):  # We check smallest value bc already ordered in r12
                 return (val_0, "0")
             else:
@@ -188,19 +222,20 @@ def get_smallest_index(T, val_12, val_0, index_r12):  # TODO: Maybe change to op
             Tp_12 = T[val_12 + 1]
             Tp_0 = T[val_0 + 1]
             if Tp_12 != Tp_0:
-                if min(Tp_0, Tp_12) == Tp_0:
+                if Tp_0 < Tp_12:
                     return (val_0, "0")
                 else:
                     return (val_12, "12")
             else:
-                test12 = np.where(index_r12 == val_12 + 2)[0][0]
-                test0 = np.where(index_r12 == val_0 + 2)[0][0]
+                # test12 = np.where(index_r12 == val_12 + 2)[0][0]
+                # test0 = np.where(index_r12 == val_0 + 2)[0][0]
+                # print(test12, test0)
+                # print(d[val_12 + 2], d[val_0 + 2])
                 if (
-                    min(
-                        test12,
-                        test0,
-                    )
-                    == test0
+                    # test0
+                    # < test12
+                    d[val_0 + 2]
+                    < d[val_12 + 2]
                 ):  # We check smallest value bc already ordered in r12
                     return (val_0, "0")
                 else:
@@ -219,13 +254,14 @@ def merging_r0_r12(T, index_r0, index_r12):
     Returns:
         array: index array updated for the next iteration
     """
+    dic_index12_i_v = {val: i for val, i in zip(index_r12, np.arange(index_r12.size))}
     size12, size0 = index_r12.size, index_r0.size
     index_table_merged = np.empty(size12 + size0, dtype=int)
     i_r12, i_r0 = 0, 0
     while i_r12 < size12 and i_r0 < size0:
         val_12 = index_r12[i_r12]
         val_0 = index_r0[i_r0]
-        val, val_type = get_smallest_index(T, val_12, val_0, index_r12)
+        val, val_type = get_smallest_index(T, val_12, val_0, dic_index12_i_v)
         index_table_merged[i_r0 + i_r12] = val
         if val_type == "0":
             i_r0 += 1
@@ -256,9 +292,9 @@ def dc3(seq: str, is_seq_to_ascii: bool = False, sorting_algorithm: str = "merge
 
 if __name__ == "__main__":
     test_result_dic = {
-        "abcabcacab": [8, 0, 3, 6, 9, 1, 4, 7, 2, 5],
-        "ab": [0, 1],
-        "abaaba": [5, 2, 3, 0, 4, 1],
+        "acgacgagac": [8, 0, 3, 6, 9, 1, 4, 7, 2, 5],
+        "ac": [0, 1],
+        "acaaca": [5, 2, 3, 0, 4, 1],
     }
     for i, (key, val) in enumerate(test_result_dic.items()):
         test = dc3(key, is_seq_to_ascii=True)

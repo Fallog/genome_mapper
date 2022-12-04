@@ -1,14 +1,19 @@
 import y_dc3 as y
 import dc3 as s
 import cProfile
+import random
 
-seq = "ACCGTAGGCCATT" * 5000
+# seq = "actgtatgtatatatgatatagaataatagtatat" * 1000
+seq = ""
+for i in range(3330000):
+    seq += random.choice(["a", "c", "g", "t"])
 
-cProfile.run("y.dc3(seq)")
-# y.dc3(seq)
+# print(seq)
+# print(y.dc3(seq))
 
-# Simon
+cProfile.run("""y.dc3(seq, sorting_algorithm = "stable")""")
+# # print(y.dc3(seq, True))
+# print(y.dc3(seq))
 
-int_seq = s.add_sentinel_numbers(s.str_to_ascii(seq))
-# s.dc3(int_seq)
-cProfile.run("s.dc3(int_seq)")
+## 44 sec : 600 000
+## 5 minutes : 3M3
