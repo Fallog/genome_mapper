@@ -1,163 +1,63 @@
-from y_dc3 import dc3, np
+import numpy as np
 from copy import deepcopy
-import array
 
 
-def suffix_list(T):
-    """
-    Compute the suffix list of T argument
-
-    Args:
-        T (str): string
-
-    Return:
-        list of strings: suffix list
-    """
-    suffix_list = []
-    for i in range(len(T)):
-        suffix_list.append(T[(-i - 1):])
-    return suffix_list
-
-
-def suffix_table(T):
-    """
-    Compute the suffix table
+def bwt(dna, suffixTable, end_of_string="$"):
+    """Returns the Burrows Wheeler Transform of the dna argument.
+    The BWT is computed efficiently using the suffix array of dna.
 
     Args:
-        T (str): string
-
-    Return:
-        list of tuples (suffix,location): suffix table, location being
-            the index of the first character of the suffix in the total
-            string
-    """
-    suffix_table = []
-    suffix_table = suffix_list(T)
-    i = 0
-    j = len(suffix_table) - 1
-    while i < len(suffix_table):
-        suffix_table[i] = (suffix_table[i], j)
-        i += 1
-        j -= 1
-
-    suffix_table.sort()
-    return suffix_table
-
-
-def bwt(string, end_of_string="$"):
-    """
-    Compute the BWT from the suffix
-
-    Args:
-        string (str): string
+        dna (str): string made only with A, T, C and G character
+        suffix_table (ndarray): contains all the suffixes of dna
         end_of_string (char): appended character specifying the end of
             the string
 
     Return:
-        bwt (str): BWT transformation of T
+        str: BWT transformation of dna
     """
     bwtStr = ""
-    string += end_of_string
-    s_table = dc3(string)  # Has to be replace by DC3 algorithm
+    dna += end_of_string
 
-    s_table = dc3(string, is_seq_to_ascii=True)
-    print(f"Suffix table (dc3): {s_table}")
-
-    for suffix_pos in s_table:
-        bwtStr += string[suffix_pos - 1]
+    for suffix_pos in suffixTable:
+        bwtStr += dna[suffix_pos - 1]
 
     return bwtStr
 
 
-def bwt_dc3(string, end_of_string="$"):
-    """
-    Compute the BWT from the suffix
-
-    Args:
-        string (str): string
-        end_of_string (char): appended character specifying the end of
-            the string
-
-    Return:
-        bwt (str): BWT transformation of T
-    """
-    bwtStr = ""
-    string += end_of_string
-
-    s_table = dc3(string, is_seq_to_ascii=True)
-    print(f"Suffix table (dc3): {s_table}")
-
-    for suffix_pos in s_table:
-        bwtStr += string[suffix_pos - 1]
-
-    return bwtStr
-
-
-def efficient_inverse_BWT(bwtStr: str, end_of_string: str = "$") -> str:
-    """
-    Returns the original string that were used to build the bwtStr
-    argument.
-
-    Args:
-        bwtStr (str): BWT of a string
-        last_character (char): specifies the end of the string used in
-            the bwt
-
-    Return:
-        T (str): BWT^{-1} of bwt without the last end_of_string char
-    """
-    T = ""
-    lenStr = len(bwtStr)  # Performance
-    appar_order_table = [0] * lenStr  # Performance
-    for i in range(lenStr):
-        # Counting elements before bwt[i] that are similar to bwt[i]
-        appar_order_table[i] = 1 + bwtStr[:i].count(bwtStr[i])
-    X = bwtStr[0]
-    k = 1
-    T += end_of_string
-
-    while X != end_of_string:
-        T = X + T
-        j = k
-
-        for i in range(len(bwtStr)):
-            if bwtStr[i] < X:
-                # Localisation of X in the sorted BWT, obtained by
-                # counting every characters that are less than X in the BWT
-                j += 1
-
-        X = bwtStr[j - 1]
-        k = appar_order_table[j - 1]
-
-    return T[:-1]
-
-
-def create_rank_mat(bwtDna: str) -> dict:
+def create_rank_mat(bwtDna):
     """Returns a dict storing the rank tables of each character in
-    the dnaSeq argument. Because the DNA is exclusively made of A, T,
-    C and G, the returned dict will contain 5 keys, the 4 bases and a $
-    specifying the end of the sequence.
+    the dnaSeq argument.
+    A rank table is an array containing, for each character of bwtDna
+    and at each position, the number of occurences of the character
+    until now.
 
     Args:
         dnaSeq (str): a string made only with A, T, C, G and a $
 
     Returns:
-        dict: contains 5 character keys, each key is mapped with the
-            rank table in the dnaSeq of the associated character
+        dict: contains 5 keys: A, T, C, G and $, each key is mapped
+            with the rank table in the dnaSeq of the associated
+            character
     """
     alphabet = ['A', 'T', 'C', 'G', '$']
     rkMat = {}
     lenDna = len(bwtDna)
     for letter in alphabet:
-        # :(i + 1) because we want to include the first & last char of string
-        countings = [0] * lenDna
+        # We use uint32 because 32 bits is sufficient to store the
+        # unsigned values we need
+        countings = np.zeros(lenDna, dtype=np.uint32)
+        # We count only one over 32 rows to be time efficient
         for i in range(lenDna):
-            countings[i] = bwtDna[:(i + 1)].count(letter)
-        rkMat[letter] = array.array('H', countings)
+            if i % 32 == 0:
+                # :(i + 1) because we want to include the first & last char of string
+                countings[i] = bwtDna[:(i + 1)].count(letter)
+            else:
+                countings[i] = 0
+        rkMat[letter] = countings
     return rkMat
 
 
-def search_kmer_pos(bwtDna: str, kmer: str, suffixTab: np.ndarray) -> tuple[str, list[int]]:
+def search_kmer_pos(bwtDna, kmer, suffixTab):
     """Search a kmer in a Burrows Wheeler tranformed genome. Returns
     the kmer and it's position(s) in the genome.
 
@@ -165,7 +65,7 @@ def search_kmer_pos(bwtDna: str, kmer: str, suffixTab: np.ndarray) -> tuple[str,
         bwtDna (str): the BWT of a string made only with A, T, C, G
             and a $
         kmer (str): nucleotides pattern to search in the genome
-        suffixTab (np.ndarray[int]): sorted array of all the suffixes
+        suffixTab (ndarray): sorted array of all the suffixes
             used to built bwtDna
 
     Return:
@@ -196,11 +96,24 @@ def search_kmer_pos(bwtDna: str, kmer: str, suffixTab: np.ndarray) -> tuple[str,
             firstOcc = bwtSort.index(X) - 1  # $ isn't taken into account
             # print(f"First index of {X} in bwtSort: {firstOcc}")
 
+            newE = e
+            rank = rankMat[X][newE]
+            counts = 0
+            while rank == 0:
+                newE -= 1
+                if bwtDna[newE] == X:
+                    counts -= 1
+                rank = rankMat[X][newE]
+            rank -= counts
+
+            # TODO Do the same but for f
+
             # The first character of the BWT has a rank of 1 in the
             # rank matrix but it is the first appearance of this
             # character. To take into account this information, we
             # decrease e of 1 in presence of this character, i.e when
             # there is no character before it
+            # TODO integrate this part in the while above
             if len(bwtDna[:(e + firstOcc)]) == 0:
                 e = firstOcc + rankMat[X][e] - 1
             else:
@@ -225,14 +138,18 @@ def search_kmer_pos(bwtDna: str, kmer: str, suffixTab: np.ndarray) -> tuple[str,
 
 if __name__ == "__main__":
     T = "ATAATAGGATCCGA" * 500
+    rankMat = create_rank_mat(T)
+    disp = "[ "
+    for count in rankMat['A']:
+        disp += f" {count}"
+    disp += "]"
+    print(disp)
 
-    bwtT = bwt(T)
-    print(f"BWT from suffix table: {bwtT}")
+    # bwtT = bwt(T)
+    # print(f"BWT from suffix table: {bwtT}")
 
-    bwtDC3 = bwt_dc3(T)
-    print(f"Is the BWT DC3 the same ? {bwtDC3 == bwtT}")
-    print(f"BWT DC3: {bwtDC3}")
+    # bwtDC3 = bwt(T)
+    # print(f"Is the BWT DC3 the same ? {bwtDC3 == bwtT}")
+    # print(f"BWT DC3: {bwtDC3}")
 
-    print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
-
-    print(search_kmer_pos(T, "ATA"))
+    # print(search_kmer_pos(T, "ATA"))
