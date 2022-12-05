@@ -1,4 +1,6 @@
 from y_dc3 import dc3, np
+from copy import deepcopy
+import array
 
 
 def suffix_list(T):
@@ -57,7 +59,7 @@ def bwt(string, end_of_string="$"):
     bwtStr = ""
 
     string += end_of_string
-    s_table = suffix_table(string)  # Has to be replace by DC3 algorithm
+    s_table = dc3(string)  # Has to be replace by DC3 algorithm
 
     for tuple in s_table:
         index = tuple[1]
@@ -104,7 +106,7 @@ def efficient_inverse_BWT(bwtStr: str, end_of_string: str = "$") -> str:
     return T[:-1]
 
 
-def create_rank_mat(dnaSeq: str) -> dict:
+def create_rank_mat(bwtDna: str) -> dict:
     """Returns a dict storing the rank tables of each character in
     the dnaSeq argument. Because the DNA is exclusively made of A, T,
     C and G, the returned dict will contain 5 keys, the 4 bases and a $
@@ -119,68 +121,71 @@ def create_rank_mat(dnaSeq: str) -> dict:
     """
     alphabet = ['A', 'T', 'C', 'G', '$']
     rkMat = {}
-    lenStr = len(dnaSeq)
+    lenDna = len(bwtDna)
     for letter in alphabet:
         # :(i + 1) because we want to include the first & last char of string
-        rkMat[letter] = [dnaSeq[:(i + 1)].count(letter) for i in range(lenStr)]
+        countings = [0] * lenDna
+        for i in range(lenDna):
+            countings[i] = bwtDna[:(i + 1)].count(letter)
+        rkMat[letter] = array.array('H', countings)
     return rkMat
 
 
-def search_kmer_pos(genome: str, kmer: str):
-    """Search a pattern in a String using the BWT.
+def search_kmer_pos(bwtDna: str, kmer: str, suffixTab: np.ndarray) -> tuple[str, list[int]]:
+    """Search a kmer in a Burrows Wheeler tranformed genome. Returns
+    the kmer and it's position(s) in the genome.
 
     Args:
-        genome (str): a string made only with A, T, C, G
-        suffix_tab (list[int]): sorted array of all the suffixes of
-            genome
-        pattern (str): pattern we are looking for
+        bwtDna (str): the BWT of a string made only with A, T, C, G
+            and a $
+        kmer (str): nucleotides pattern to search in the genome
+        suffixTab (np.ndarray[int]): sorted array of all the suffixes
+            used to built bwtDna
 
     Return:
         bool: true if the pattern is in the string
     """
     isKmerIn = False
 
-    # To be passed in argument to avoid computing each time
-    bwtGen = bwt(genome)
-    bwtSort = list(bwtGen)
-    bwtSort.sort()
+    bwtSort = deepcopy(bwtDna).sort()  # Avoid modifying bwtGen while sorting
+    lenBwt = len(bwtDna)
 
-    lenBwt = len(bwtGen)
     e = 0
     f = lenBwt - 1  # Stay in the string boundaries
     i = len(kmer) - 1  # Stay in the kmer boundaries
 
-    rankMat = create_rank_mat(bwtGen)
-    print(f"Rank matrix: {rankMat}")
+    rankMat = create_rank_mat(bwtDna)
+    # print(f"Rank matrix: {rankMat}")
     nbOccur = 1
 
     while nbOccur > 0 and i >= 0:
         X = kmer[i]
 
-        if X not in genome:
+        if X not in bwtDna:
             return False
         else:
-            print(f"i: {i}, X: {X}")
-            print(f"Rank table of {X}: {rankMat[X]}")
+            # print(f"i: {i}, X: {X}")
+            # print(f"Rank table of {X}: {rankMat[X]}")
 
             firstOcc = bwtSort.index(X) - 1  # $ isn't taken into account
-            print(f"First index of {X} in bwtSort: {firstOcc}")
+            # print(f"First index of {X} in bwtSort: {firstOcc}")
 
-            # The first character of the BWT has a rank of 1 in the rank
-            # matrix but it is the first appearance of this character.
-            # To take into account this information, we decrease e of 1 in
-            # presence of this character, when there is no character before it
-            if len(bwtGen[:(e + firstOcc)]) == 0:
+            # The first character of the BWT has a rank of 1 in the
+            # rank matrix but it is the first appearance of this
+            # character. To take into account this information, we
+            # decrease e of 1 in presence of this character, i.e when
+            # there is no character before it
+            if len(bwtDna[:(e + firstOcc)]) == 0:
                 e = firstOcc + rankMat[X][e] - 1
             else:
                 e = firstOcc + rankMat[X][e]
             f = firstOcc + rankMat[X][f]
-            print(f"e: {e}, f: {f}")
+            # print(f"e: {e}, f: {f}")
 
             nbOccur = f - e  # quantity of elements between 2 indexes
             if nbOccur == 0:
                 return False
-            print(f"Number of pattern: {nbOccur}\n")
+            # print(f"Number of pattern: {nbOccur}\n")
 
             i -= 1
 
@@ -193,11 +198,7 @@ def search_kmer_pos(genome: str, kmer: str):
 
 
 if __name__ == "__main__":
-    T = "ATAATA"
-    # T = "abcabcacab"
-    arr = np.array([1, 3, 5, 7, 9])
-    emptArr = np.array(arr[1])
-    print(f"Test: {emptArr}, type: {type(emptArr)}")
+    T = "ATAATAGGATCCGA" * 500
 
     bwtT = bwt(T)
     print(bwtT)
@@ -205,7 +206,5 @@ if __name__ == "__main__":
     print(f"Rank matrix of T: {create_rank_mat(bwtT)}")  # OK
 
     print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
-
-    print(f"Original suffix table {suffix_table(T)}")
 
     print(search_kmer_pos(T, "ATA"))
