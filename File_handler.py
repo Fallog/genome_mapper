@@ -1,4 +1,4 @@
-import json
+import numpy as np
 import os.path
 
 
@@ -11,10 +11,10 @@ class File_handler:
                 dc3 result form : SPECIES_CHR_NUMBER
         """
         self.file_name = file_name
-        self.dc3_path = f"RESULTS/dc3_result_{file_name}.json"
+        self.dc3_path = f"RESULTS/dc3_result_{file_name}.npy"
 
     def export_dc3_result(self, suffix_table, overwrite="y") -> None:
-        """Create a .json file contening our dc3 results
+        """Create a .npy file contening our dc3 results
 
         Args:
             suffix_table (array): result of dc3 algorithm
@@ -31,11 +31,9 @@ class File_handler:
                     "Do you want to overwrite old dc3 result for this information ? (y/n) : "
                 ).lower()
             if overwrite.lower() == "y":
-                with open(self.dc3_path, "w") as file:
-                    json.dump(suffix_table, file)
+                np.save(self.dc3_path, suffix_table)
         else:
-            with open(self.dc3_path, "w") as file:
-                json.dump(suffix_table, file)
+            np.save(self.dc3_path, suffix_table)
 
     def import_dc3_result(self):
         """Return the suffixe table
@@ -44,8 +42,7 @@ class File_handler:
             array: Suffixe table.
         """
         if os.path.isfile(self.dc3_path):
-            with open(self.dc3_path, "r") as file:
-                return json.load(file)
+            return np.load(self.dc3_path)
         else:
             print(f"No file a the path {self.dc3_path}.")
 
