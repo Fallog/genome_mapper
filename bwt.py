@@ -46,7 +46,7 @@ def suffix_table(T):
 
 def bwt(string, end_of_string="$"):
     """
-    Compute the BWT from the suffix table
+    Compute the BWT from the suffix
 
     Args:
         string (str): string
@@ -57,13 +57,15 @@ def bwt(string, end_of_string="$"):
         bwt (str): BWT transformation of T
     """
     bwtStr = ""
-
     string += end_of_string
     s_table = dc3(string)  # Has to be replace by DC3 algorithm
 
-    for tuple in s_table:
-        index = tuple[1]
-        bwtStr += string[index - 1]
+    s_table = dc3(string, is_seq_to_ascii=True)
+    print(f"Suffix table (dc3): {s_table}")
+
+    for suffix_pos in s_table:
+        bwtStr += string[suffix_pos - 1]
+
     return bwtStr
 
 
