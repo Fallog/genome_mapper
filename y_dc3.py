@@ -259,15 +259,16 @@ def merging_r0_r12(T, index_r0, index_r12):
 
 def dc3(seq: str, sorting_algorithm: str = "stable"):
     T = tools.strToBase(seq)
+    print(T)
     suffix_array = reccursive_sort_s11(T, sorting_algorithm)
     return suffix_array
 
 
 if __name__ == "__main__":
     test_result_dic = {
-        "acgacgagac": [8, 0, 3, 6, 9, 1, 4, 7, 2, 5],
-        "ac": [0, 1],
-        "acaaca": [5, 2, 3, 0, 4, 1],
+        "acgacgagac$": [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5],
+        "ac$": [2, 0, 1],
+        "acaaca$": [6, 5, 2, 3, 0, 4, 1],
     }
     for i, (key, val) in enumerate(test_result_dic.items()):
         test = dc3(key)

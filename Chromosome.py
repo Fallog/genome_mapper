@@ -12,6 +12,7 @@ class Chromosome:
         """
         self.file_name = file_name
         self.DNA = seq
+        self.DNA_dol = seq + "$"
         self.dc3_path = f"RESULTS/dc3_result_{file_name}.npy"
         self.suffix_table = None
         if os.path.isfile(self.dc3_path):
