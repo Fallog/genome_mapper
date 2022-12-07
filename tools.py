@@ -29,8 +29,9 @@ def strToBase(text: str):
             res_array[i] = 3
         elif text[i] == "G":
             res_array[i] = 4
-        else:
+        elif text[i] == "T":
             res_array[i] = 5
+
     return res_array
 
 
@@ -76,7 +77,7 @@ def cut_read_to_kmer(read: str, k_len: int) -> list[str]:
     read_cnt = 0
     k_cnt = 0
     while read_cnt <= read_len - k_len:
-        kmer_l[k_cnt] = read[read_cnt: read_cnt + k_len]
+        kmer_l[k_cnt] = read[read_cnt : read_cnt + k_len]
         read_cnt += k_len
         k_cnt += 1
 
