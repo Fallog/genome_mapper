@@ -44,7 +44,7 @@ class File_handler:
         if os.path.isfile(self.dc3_path):
             return np.load(self.dc3_path)
         else:
-            print(f"No file a the path {self.dc3_path}.")
+            print(f"No file at the path {self.dc3_path}.")
 
 
 if __name__ == "__main__":
