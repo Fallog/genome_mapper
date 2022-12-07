@@ -49,6 +49,7 @@ class Chromosome:
         """
         if os.path.isfile(self.dc3_path):
             self.suffix_table = np.load(self.dc3_path)
+            return self.suffix_table
         else:
             print(f"No file at the path {self.dc3_path}.")
 
