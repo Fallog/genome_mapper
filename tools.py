@@ -98,7 +98,7 @@ def inverse_sequence(dnaSeq: str) -> str:
     dnaSeqInv = [0] * seqLen  # Performance
 
     for i in range(seqLen):
-        base = dnaSeq[i]
+        base = dnaSeq[i].capitalize()
         # dnaSeqInv is built backwards because it the inversed of dnaSeq
         if base == "A":
             dnaSeqInv[-(i + 1)] = "T"
