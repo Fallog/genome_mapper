@@ -1,5 +1,5 @@
 import numpy as np
-from File_handler import File_handler
+from Chromosome import Chromosome
 from Bio import SeqIO
 
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         chromo.append(str(record.seq))
     # print(f"chromosome 1: {chromo[0]}")
 
-    s_table = File_handler("P_fal_chromosome_1").import_dc3_result()
+    s_table = Chromosome("P_fal_chromosome_1").import_dc3_result()
     # print(f"Suffix table: {s_table}")
 
     bwtChromo1 = bwt(chromo[0], s_table)  # testing for the first chromosome
