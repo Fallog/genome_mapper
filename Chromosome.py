@@ -3,13 +3,16 @@ import os.path
 
 
 class Chromosome:
-    def __init__(self, file_name, seq):
+    def __init__(self, file_name: str, seq: str, id: str):
         """Create a objet with all methods to manage file with this object
 
         Args:
             file_name (string): basic file information
                 dc3 result form : SPECIES_CHR_NUMBER
+            seq (string): DNA sequence of chromosone
+            id (string): ID of the chromosome
         """
+        self.id = id
         self.file_name = file_name
         self.DNA = seq
         self.DNA_dol = seq + "$"
