@@ -1,210 +1,94 @@
-from y_dc3 import dc3, np
-from copy import deepcopy
-import array
+import numpy as np
+from Chromosome import Chromosome
+from Bio import SeqIO
 
 
-def suffix_list(T):
-    """
-    Compute the suffix list of T argument
-
-    Args:
-        T (str): string
-
-    Return:
-        list of strings: suffix list
-    """
-    suffix_list = []
-    for i in range(len(T)):
-        suffix_list.append(T[(-i - 1):])
-    return suffix_list
-
-
-def suffix_table(T):
-    """
-    Compute the suffix table
+def bwt(dna, suffixTable, end_of_string="$"):
+    """Returns the Burrows Wheeler Transform of the dna argument.
+    The BWT is computed efficiently using the suffix array of dna.
 
     Args:
-        T (str): string
-
-    Return:
-        list of tuples (suffix,location): suffix table, location being
-            the index of the first character of the suffix in the total
-            string
-    """
-    suffix_table = []
-    suffix_table = suffix_list(T)
-    i = 0
-    j = len(suffix_table) - 1
-    while i < len(suffix_table):
-        suffix_table[i] = (suffix_table[i], j)
-        i += 1
-        j -= 1
-
-    suffix_table.sort()
-    return suffix_table
-
-
-def bwt(string, end_of_string="$"):
-    """
-    Compute the BWT from the suffix table
-
-    Args:
-        string (str): string
+        dna (str): string made only with A, T, C and G character
+        suffix_table (ndarray): contains all the suffixes of dna
         end_of_string (char): appended character specifying the end of
             the string
 
     Return:
-        bwt (str): BWT transformation of T
+        str: BWT transformation of dna
     """
     bwtStr = ""
+    dna += end_of_string
 
-    string += end_of_string
-    s_table = dc3(string)  # Has to be replace by DC3 algorithm
+    for i in range(len(suffixTable)):
+        # Chromosomes have sometimes bases in lowercase
+        bwtStr += dna[suffixTable[i] - 1].capitalize()
 
-    for tuple in s_table:
-        index = tuple[1]
-        bwtStr += string[index - 1]
     return bwtStr
 
 
-def efficient_inverse_BWT(bwtStr: str, end_of_string: str = "$") -> str:
-    """
-    Returns the original string that were used to build the bwtStr
-    argument.
-
-    Args:
-        bwtStr (str): BWT of a string
-        last_character (char): specifies the end of the string used in
-            the bwt
-
-    Return:
-        T (str): BWT^{-1} of bwt without the last end_of_string char
-    """
-    T = ""
-    lenStr = len(bwtStr)  # Performance
-    appar_order_table = [0] * lenStr  # Performance
-    for i in range(lenStr):
-        # Counting elements before bwt[i] that are similar to bwt[i]
-        appar_order_table[i] = 1 + bwtStr[:i].count(bwtStr[i])
-    X = bwtStr[0]
-    k = 1
-    T += end_of_string
-
-    while X != end_of_string:
-        T = X + T
-        j = k
-
-        for i in range(len(bwtStr)):
-            if bwtStr[i] < X:
-                # Localisation of X in the sorted BWT, obtained by
-                # counting every characters that are less than X in the BWT
-                j += 1
-
-        X = bwtStr[j - 1]
-        k = appar_order_table[j - 1]
-
-    return T[:-1]
-
-
-def create_rank_mat(bwtDna: str) -> dict:
+def create_rank_mat(bwtDna):
     """Returns a dict storing the rank tables of each character in
-    the dnaSeq argument. Because the DNA is exclusively made of A, T,
-    C and G, the returned dict will contain 5 keys, the 4 bases and a $
-    specifying the end of the sequence.
+    the dnaSeq argument.
+    A rank table is an array containing, for each character of bwtDna
+    and at each position, the number of occurences of the character
+    until now. Because its creation is costful, we decide to count only
+    one over 32 indexes, the rank checkpoint. The remaining indexes are
+    discarded, filled with -1.
 
     Args:
         dnaSeq (str): a string made only with A, T, C, G and a $
 
     Returns:
-        dict: contains 5 character keys, each key is mapped with the
-            rank table in the dnaSeq of the associated character
+        dict: contains 5 keys: A, T, C, G and $, each key is mapped
+            with the rank table in the dnaSeq of the associated
+            character
     """
     alphabet = ['A', 'T', 'C', 'G', '$']
     rkMat = {}
     lenDna = len(bwtDna)
     for letter in alphabet:
-        # :(i + 1) because we want to include the first & last char of string
-        countings = [0] * lenDna
+        # We use int32 because 32 bits is sufficient to store the
+        # values we need
+        countings = np.zeros(lenDna, dtype=np.int32)
+        # We count only one over 32 indexes to be time efficient
         for i in range(lenDna):
-            countings[i] = bwtDna[:(i + 1)].count(letter)
-        rkMat[letter] = array.array('H', countings)
+            if i % 32 == 0:
+                # :(i + 1) because we want to include the first & last char of bwtDna
+                countings[i] = bwtDna[:(i + 1)].count(letter)
+            else:
+                # row is discarded i.e its rank is not computed
+                countings[i] = -1
+        rkMat[letter] = countings
     return rkMat
 
 
-def search_kmer_pos(bwtDna: str, kmer: str, suffixTab: np.ndarray) -> tuple[str, list[int]]:
-    """Search a kmer in a Burrows Wheeler tranformed genome. Returns
-    the kmer and it's position(s) in the genome.
-
-    Args:
-        bwtDna (str): the BWT of a string made only with A, T, C, G
-            and a $
-        kmer (str): nucleotides pattern to search in the genome
-        suffixTab (np.ndarray[int]): sorted array of all the suffixes
-            used to built bwtDna
-
-    Return:
-        bool: true if the pattern is in the string
-    """
-    isKmerIn = False
-
-    bwtSort = deepcopy(bwtDna).sort()  # Avoid modifying bwtGen while sorting
-    lenBwt = len(bwtDna)
-
-    e = 0
-    f = lenBwt - 1  # Stay in the string boundaries
-    i = len(kmer) - 1  # Stay in the kmer boundaries
-
-    rankMat = create_rank_mat(bwtDna)
-    # print(f"Rank matrix: {rankMat}")
-    nbOccur = 1
-
-    while nbOccur > 0 and i >= 0:
-        X = kmer[i]
-
-        if X not in bwtDna:
-            return False
-        else:
-            # print(f"i: {i}, X: {X}")
-            # print(f"Rank table of {X}: {rankMat[X]}")
-
-            firstOcc = bwtSort.index(X) - 1  # $ isn't taken into account
-            # print(f"First index of {X} in bwtSort: {firstOcc}")
-
-            # The first character of the BWT has a rank of 1 in the
-            # rank matrix but it is the first appearance of this
-            # character. To take into account this information, we
-            # decrease e of 1 in presence of this character, i.e when
-            # there is no character before it
-            if len(bwtDna[:(e + firstOcc)]) == 0:
-                e = firstOcc + rankMat[X][e] - 1
-            else:
-                e = firstOcc + rankMat[X][e]
-            f = firstOcc + rankMat[X][f]
-            # print(f"e: {e}, f: {f}")
-
-            nbOccur = f - e  # quantity of elements between 2 indexes
-            if nbOccur == 0:
-                return False
-            # print(f"Number of pattern: {nbOccur}\n")
-
-            i -= 1
-
-            # True if the entire pattern is crossed
-            if i == -1:
-                isKmerIn = True
-                return isKmerIn, nbOccur
-
-    return isKmerIn, nbOccur
-
-
 if __name__ == "__main__":
-    T = "ATAATAGGATCCGA" * 500
+    chromo = []
+    for record in SeqIO.parse("SEQUENCES/P_fal_genome.fna", format="fasta"):
+        chromo.append(str(record.seq))
+    # print(f"chromosome 1: {chromo[0]}")
 
-    bwtT = bwt(T)
-    print(bwtT)
+    s_table = Chromosome("P_fal_chromosome_1", chromo[0]).import_dc3_result()
+    print(f"Suffix table: {s_table}")
 
-    print(f"Rank matrix of T: {create_rank_mat(bwtT)}")  # OK
+    bwtChromo1 = bwt(chromo[0], s_table)  # testing for the first chromosome
+    print(f"bwt: {bwtChromo1[:100]}, type: {type(bwtChromo1)}")
 
-    print(f"Inverse BWT result: {efficient_inverse_BWT(bwtT)}")  # OK
+    bwtList = list(bwtChromo1)
+    print(f"Sorted BWT list: {sorted(bwtList)[:100]}")
 
-    print(search_kmer_pos(T, "ATA"))
+    rankMat = create_rank_mat(bwtChromo1)
+    print(f"Rank matrix of A: {rankMat['A'][260000:261000]}")
+
+    # disp = "[ "
+    # for count in rankMat['A']:
+    #     disp += f" {count}"
+    # disp += "]"
+    # print(disp)
+
+    # bwtT = bwt(T)
+    # print(f"BWT from suffix table: {bwtT}")
+
+    # bwtDC3 = bwt(T)
+    # print(f"Is the BWT DC3 the same ? {bwtDC3 == bwtT}")
+    # print(f"BWT DC3: {bwtDC3}")

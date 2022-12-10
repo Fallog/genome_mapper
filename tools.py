@@ -61,28 +61,39 @@ def printDc3Var(p12, r12, r12s, index, tp, iter=-1) -> None:
     print(str_to_print)
 
 
-def cut_read_to_kmer(read: str, k_len: int) -> list[str]:
+def cut_read_to_kmer(read: str, kLen: int, readId):
     """Divide the given read argument into a list of k-mer, i.e. smaller strings,
     of size the k_len argument.
 
     Args:
         read (str): str made of the characters 'A', 'T', 'C' and 'G'
-        k_len (int): size of the k-mer to be created from the read sequence
+        kLen (int): size of the k-mer to be created from the read
+            sequence
+        readId (int): unique identifier specifying to which read the
+            kmer belongs
 
     Returns:
-        list[str]: list of all the k-mer created from the read argument
+        list[str, int]: list of all the k-mer created from the read
+            along with readId and the order of the kmer on the read
     """
-    read_len = len(read)  # performance
-    kmer_l = [0] * (read_len // k_len)
-    read_cnt = 0
-    k_cnt = 0
-    while read_cnt <= read_len - k_len:
-        kmer_l[k_cnt] = read[read_cnt : read_cnt + k_len]
-        read_cnt += k_len
-        k_cnt += 1
+    readLen = len(read)  # performance
+    kmerList = [0] * (readLen // kLen)
+    readCnt = 0
+    kCnt = 0
+    while readCnt <= readLen - kLen:
+        kmerList[kCnt] = (read[readCnt:readCnt + kLen], readId, kCnt)
+        readCnt += kLen
+        kCnt += 1
 
     # Adding remaining nucleotides in case of non divisible k_len
-    return kmer_l + [read[read_cnt:]]
+    return kmerList + [(read[readCnt:], readId, kCnt + 1)]
+
+
+def link_kmer(kmerList):
+    read = ""
+    for kmerTuple in kmerList:
+        kmerOrder = kmerTuple[2]
+    return read
 
 
 def inverse_sequence(dnaSeq: str) -> str:
@@ -99,7 +110,7 @@ def inverse_sequence(dnaSeq: str) -> str:
     dnaSeqInv = [0] * seqLen  # Performance
 
     for i in range(seqLen):
-        base = dnaSeq[i]
+        base = dnaSeq[i].capitalize()
         # dnaSeqInv is built backwards because it the inversed of dnaSeq
         if base == "A":
             dnaSeqInv[-(i + 1)] = "T"
@@ -114,7 +125,7 @@ def inverse_sequence(dnaSeq: str) -> str:
 
 if __name__ == "__main__":
     fst_read = """TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"""
-    print(f"Cuttinng test: {cut_read_to_kmer(fst_read, 20)}")
+    print(f"Cuttinng test: {cut_read_to_kmer(fst_read, 20, 1)}")  # OK
 
     frag = "TTTCCTTTTT"
     invFrag = "AAAAAGGAAA"
