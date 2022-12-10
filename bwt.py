@@ -17,11 +17,13 @@ def bwt(dna, suffixTable, end_of_string="$"):
         str: BWT transformation of dna
     """
     bwtStr = ""
-    dna += end_of_string
 
     for i in range(len(suffixTable)):
         # Chromosomes have sometimes bases in lowercase
-        bwtStr += dna[suffixTable[i] - 1].capitalize()
+        if suffixTable[i] == 0:
+            bwtStr += "$"
+        else:
+            bwtStr += dna[suffixTable[i] - 1].capitalize()
 
     return bwtStr
 
