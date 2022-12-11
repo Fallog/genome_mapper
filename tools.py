@@ -19,7 +19,7 @@ def strToAscii(text: str):  # USELESS
 
 def strToBase(text: str):
     text = text.upper()
-    res_array = np.empty(len(text))
+    res_array = np.empty(len(text), dtype=int)
     for i in range(len(text)):
         if text[i] == "$":
             res_array[i] = 1
@@ -81,7 +81,7 @@ def cut_read_to_kmer(read: str, kLen: int, readId):
     readCnt = 0
     kCnt = 0
     while readCnt <= readLen - kLen:
-        kmerList[kCnt] = (read[readCnt:readCnt + kLen], readId, kCnt)
+        kmerList[kCnt] = (read[readCnt : readCnt + kLen], readId, kCnt)
         readCnt += kLen
         kCnt += 1
 
