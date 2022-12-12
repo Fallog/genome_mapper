@@ -89,15 +89,21 @@ def make_tp(r12s, r12):
     tp = np.empty(r12s.size, dtype=int)
     array_without_duplicate = np.unique(r12s)
     d = {
-        str(val): i
+        mini_hash(val): i
         for val, i in zip(
             array_without_duplicate, np.arange(array_without_duplicate.size)
         )
     }
     # print(d)
     for i, elem in enumerate(r12):
-        tp[i] = d[str(elem)] + 1
+        tp[i] = d[mini_hash(elem)] + 1
     return tp
+
+
+def mini_hash(tup=tuple[int, int, int]) -> int:
+    l2 = np.ceil(np.log10(tup[1] + 1)).astype(int)
+    l3 = np.ceil(np.log10(tup[2] + 1)).astype(int)
+    return tup[0] * 10 ** (l2 + l3 + 2) + (tup[1] * 10 ** (l3 + 1)) + tup[2]
 
 
 def reccursive_sort_s11(init_seq, sorting_algorithm, iter=0, print_var=False):
@@ -256,6 +262,8 @@ def dc3(seq: str, sorting_algorithm: str = "stable"):
 
 
 if __name__ == "__main__":
+    # print([1, 5, 7][np.log10(100).astype(int)])
+
     print("dc3", dc3("acgacgacag"))
 #     test_result_dic = {
 #         "acgacgagac$": [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5],
