@@ -81,7 +81,7 @@ def cut_read_to_kmer(read: str, kLen: int, readId):
     readCnt = 0
     kCnt = 0
     while readCnt <= readLen - kLen:
-        kmerList[kCnt] = (read[readCnt : readCnt + kLen], readId, kCnt)
+        kmerList[kCnt] = (read[readCnt:readCnt + kLen], readId, kCnt)
         readCnt += kLen
         kCnt += 1
 
