@@ -73,7 +73,7 @@ def cut_read_to_kmer(read: str, kLen: int, readId):
             kmer belongs
 
     Returns:
-        list[str, int]: list of all the k-mer created from the read
+        list[str, int, int]: list of all the k-mer created from the read
             along with readId and the order of the kmer on the read
     """
     readLen = len(read)  # performance
@@ -89,11 +89,36 @@ def cut_read_to_kmer(read: str, kLen: int, readId):
     return kmerList + [(read[readCnt:], readId, kCnt + 1)]
 
 
-def link_kmer(kmerList):
-    read = ""
-    for kmerTuple in kmerList:
-        kmerOrder = kmerTuple[2]
-    return read
+def link_kmer(kmerList, locaList):
+    indFirst = 0  # index to parse the localisation of the first kmer
+    indLoca = 0  # index to parse the localisation of the following kmers
+    indKmer = 1  # index specifying on which following kmer we are
+    locaFirst = locaList[0]  # localisations list of the first kmer
+    locaNext = locaList[indKmer]  # localisations list of the following kmer
+    read = kmerList[0]
+    readLen = len(kmerList)  # number of kmer in a read
+    kmerLen = len(kmerList[0])  # kmer have all the same size
+    while indKmer != readLen:
+        # Si on arrive au bout des localisations, on passe à la
+        # localisation suivante du premier kmer en retournant à
+        # la première localisation du kmer suivant (le 1 donc)
+        if indLoca == len(locaNext):
+            indFirst += 1
+            indKmer = 1
+            indLoca = 0
+            read = kmerList[0]
+        else:
+            # Si les localisations se suivent, passer au kmer suivant
+            # tout en revenant à sa première localisation
+            if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
+                read += kmerList[indKmer]
+                indKmer += 1
+                indLoca = 0
+
+            else:  # sinon regarder la localisation suivante du kmer actuel
+                indLoca += 1
+        locaNext = locaList[indKmer]
+    return read, locaFirst[indFirst]
 
 
 def inverse_sequence(dnaSeq: str) -> str:
@@ -124,12 +149,10 @@ def inverse_sequence(dnaSeq: str) -> str:
 
 
 if __name__ == "__main__":
-    fst_read = """TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"""
-    print(f"Cuttinng test: {cut_read_to_kmer(fst_read, 20, 1)}")  # OK
+    testRead = """TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"""
+    print(f"Cutting test: {cut_read_to_kmer(testRead, 20, 1)}")  # OK
+    kmerList = cut_read_to_kmer(testRead, 10, 1)
 
-    frag = "TTTCCTTTTT"
-    invFrag = "AAAAAGGAAA"
-    print(f"Inversing test: {inverse_sequence(frag) == invFrag}")  # OK
     strand = "GCTTAGGAACTATACAGTT"
     invStrand = "AACTGTATAGTTCCTAAGC"
     print(f"Inversing test: {inverse_sequence(strand) == invStrand}")  # OK
