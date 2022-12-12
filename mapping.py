@@ -3,7 +3,6 @@ from Bio import SeqIO
 # import cProfile
 import bwt
 from RESULTS_LIONEL.Import_DC3_Lionel import import_file
-
 from Chromosome import Chromosome
 
 
@@ -142,9 +141,9 @@ if __name__ == "__main__":
         chromo.append(str(record.seq))
     print(f"chromosome 1: {chromo[0][:100]}, type: {type(chromo[0])}")
 
-    chromo1 = Chromosome("P_fal_chromosome_1", chromo[0])
+    chromo1 = Chromosome("P_fal_chromosome_1", chromo[0], 1)
 
-    DC3_chrom1 = import_file("DC3_chrom1.txt", "DC3")
+    DC3_chrom1 = import_file("RESULTS_LIONEL/DC3_chrom1.txt", "DC3")
     print(
         f"type dc3lionel: {type(DC3_chrom1)} type suffix table {type(chromo1.suffix_table)}")
     print(f"Lengths: {len(DC3_chrom1)} {len(chromo1.suffix_table)}")
