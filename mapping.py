@@ -249,7 +249,7 @@ if __name__ == "__main__":
     locs = []
     for kmer in kmerFstRead:
         locs.append(search_kmer_pos(bwtChromo1, rankMat,
-                    chromo1.suffix_table, kmer[0]))
+                    chromo1.suffix_table, kmer[0])[1])
     print(f"Kmer loc on chromo1: {locs}")
 
-    verification_pattern(chromo1, kmerFstRead[0], locs)
+    verification_pattern(chromo1.DNA, kmerFstRead[0][0], locs[0])
