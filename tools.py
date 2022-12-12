@@ -61,41 +61,6 @@ def printDc3Var(p12, r12, r12s, index, tp, iter=-1) -> None:
     print(str_to_print)
 
 
-def cut_read_to_kmer(read: str, kLen: int, readId):
-    """Divide the given read argument into a list of k-mer, i.e. smaller strings,
-    of size the k_len argument.
-
-    Args:
-        read (str): str made of the characters 'A', 'T', 'C' and 'G'
-        kLen (int): size of the k-mer to be created from the read
-            sequence
-        readId (int): unique identifier specifying to which read the
-            kmer belongs
-
-    Returns:
-        list[str, int]: list of all the k-mer created from the read
-            along with readId and the order of the kmer on the read
-    """
-    readLen = len(read)  # performance
-    kmerList = [0] * (readLen // kLen)
-    readCnt = 0
-    kCnt = 0
-    while readCnt <= readLen - kLen:
-        kmerList[kCnt] = (read[readCnt:readCnt + kLen], readId, kCnt)
-        readCnt += kLen
-        kCnt += 1
-
-    # Adding remaining nucleotides in case of non divisible k_len
-    return kmerList + [(read[readCnt:], readId, kCnt + 1)]
-
-
-def link_kmer(kmerList):
-    read = ""
-    for kmerTuple in kmerList:
-        kmerOrder = kmerTuple[2]
-    return read
-
-
 def inverse_sequence(dnaSeq: str) -> str:
     """Returns the inversed complementary strand of the dnaSeq argument.
     'A' becomes 'T', 'C' becomes 'G' and inversely.
@@ -124,12 +89,7 @@ def inverse_sequence(dnaSeq: str) -> str:
 
 
 if __name__ == "__main__":
-    fst_read = """TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"""
-    print(f"Cuttinng test: {cut_read_to_kmer(fst_read, 20, 1)}")  # OK
 
-    frag = "TTTCCTTTTT"
-    invFrag = "AAAAAGGAAA"
-    print(f"Inversing test: {inverse_sequence(frag) == invFrag}")  # OK
     strand = "GCTTAGGAACTATACAGTT"
     invStrand = "AACTGTATAGTTCCTAAGC"
     print(f"Inversing test: {inverse_sequence(strand) == invStrand}")  # OK
