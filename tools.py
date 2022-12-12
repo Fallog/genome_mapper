@@ -61,66 +61,6 @@ def printDc3Var(p12, r12, r12s, index, tp, iter=-1) -> None:
     print(str_to_print)
 
 
-def cut_read_to_kmer(read: str, kLen: int, readId):
-    """Divide the given read argument into a list of k-mer, i.e. smaller strings,
-    of size the k_len argument.
-
-    Args:
-        read (str): str made of the characters 'A', 'T', 'C' and 'G'
-        kLen (int): size of the k-mer to be created from the read
-            sequence
-        readId (int): unique identifier specifying to which read the
-            kmer belongs
-
-    Returns:
-        list[str, int, int]: list of all the k-mer created from the read
-            along with readId and the order of the kmer on the read
-    """
-    readLen = len(read)  # performance
-    kmerList = [0] * (readLen // kLen)
-    readCnt = 0
-    kCnt = 0
-    while readCnt <= readLen - kLen:
-        kmerList[kCnt] = (read[readCnt:readCnt + kLen], readId, kCnt)
-        readCnt += kLen
-        kCnt += 1
-
-    # Adding remaining nucleotides in case of non divisible k_len
-    return kmerList + [(read[readCnt:], readId, kCnt + 1)]
-
-
-def link_kmer(kmerList, locaList):
-    indFirst = 0  # index to parse the localisation of the first kmer
-    indLoca = 0  # index to parse the localisation of the following kmers
-    indKmer = 1  # index specifying on which following kmer we are
-    locaFirst = locaList[0]  # localisations list of the first kmer
-    locaNext = locaList[indKmer]  # localisations list of the following kmer
-    read = kmerList[0]
-    readLen = len(kmerList)  # number of kmer in a read
-    kmerLen = len(kmerList[0])  # kmer have all the same size
-    while indKmer != readLen:
-        # Si on arrive au bout des localisations, on passe à la
-        # localisation suivante du premier kmer en retournant à
-        # la première localisation du kmer suivant (le 1 donc)
-        if indLoca == len(locaNext):
-            indFirst += 1
-            indKmer = 1
-            indLoca = 0
-            read = kmerList[0]
-        else:
-            # Si les localisations se suivent, passer au kmer suivant
-            # tout en revenant à sa première localisation
-            if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
-                read += kmerList[indKmer]
-                indKmer += 1
-                indLoca = 0
-
-            else:  # sinon regarder la localisation suivante du kmer actuel
-                indLoca += 1
-        locaNext = locaList[indKmer]
-    return read, locaFirst[indFirst]
-
-
 def inverse_sequence(dnaSeq: str) -> str:
     """Returns the inversed complementary strand of the dnaSeq argument.
     'A' becomes 'T', 'C' becomes 'G' and inversely.
@@ -149,9 +89,6 @@ def inverse_sequence(dnaSeq: str) -> str:
 
 
 if __name__ == "__main__":
-    testRead = """TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"""
-    print(f"Cutting test: {cut_read_to_kmer(testRead, 20, 1)}")  # OK
-    kmerList = cut_read_to_kmer(testRead, 10, 1)
 
     strand = "GCTTAGGAACTATACAGTT"
     invStrand = "AACTGTATAGTTCCTAAGC"
