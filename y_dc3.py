@@ -51,6 +51,7 @@ def make_r0(p0, tp, index):
     y = p0.size
     r0 = np.empty((y), dtype=[("1", int), ("2", int)])
     d = {val: i for val, i in zip(index, np.arange(index.size))}
+    # print(d)
 
     for i in range(y):
         r0[i][0] = int(tp[p0[i]])
@@ -73,41 +74,36 @@ def compute_dc3_variable(T, sorting_algorithm):
     """
 
     p12 = make_p12(T)
+    # print(p12)
     r12 = make_triplet(T, p12)
+    # print(r12)
     r12s = np.copy(r12)
     index_list = np.argsort(r12s, kind=sorting_algorithm, order=("1", "2", "3"))
     index = np.take_along_axis(p12, index_list, axis=0)
 
     r12s.sort(kind=sorting_algorithm, order=("1", "2", "3"))
-
     return p12, r12, r12s, index
-
-
-def tuple_to_int(int_tuple: tuple) -> int:  # TODO:to put in tool
-    """Transform a tuple of 3 value to a 3 digits number
-
-    Args:
-        tuple (tuple): tuple of 3 int (only 1 digit per int)
-
-    Returns:
-        int: a 3 digits number
-    """
-    return int_tuple[0] * 100 + int_tuple[1] * 10 + int_tuple[2]
 
 
 def make_tp(r12s, r12):
     tp = np.empty(r12s.size, dtype=int)
     array_without_duplicate = np.unique(r12s)
     d = {
-        tuple_to_int(val): i
+        mini_hash(val): i
         for val, i in zip(
             array_without_duplicate, np.arange(array_without_duplicate.size)
         )
     }
     # print(d)
     for i, elem in enumerate(r12):
-        tp[i] = d[tuple_to_int(elem)] + 1
+        tp[i] = d[mini_hash(elem)] + 1
     return tp
+
+
+def mini_hash(tup=tuple[int, int, int]) -> int:
+    l2 = np.ceil(np.log10(tup[1] + 1)).astype(int)
+    l3 = np.ceil(np.log10(tup[2] + 1)).astype(int)
+    return tup[0] * 10 ** (l2 + l3 + 2) + (tup[1] * 10 ** (l3 + 1)) + tup[2]
 
 
 def reccursive_sort_s11(init_seq, sorting_algorithm, iter=0, print_var=False):
@@ -231,6 +227,7 @@ def merging_r0_r12(T, index_r0, index_r12):
         array: index array updated for the next iteration
     """
     dic_index12_i_v = {val: i for val, i in zip(index_r12, np.arange(index_r12.size))}
+    # print(dic_index12_i_v)
     size12, size0 = index_r12.size, index_r0.size
     index_table_merged = np.empty(size12 + size0, dtype=int)
     i_r12, i_r0 = 0, 0
@@ -259,21 +256,24 @@ def merging_r0_r12(T, index_r0, index_r12):
 
 def dc3(seq: str, sorting_algorithm: str = "stable"):
     T = tools.strToBase(seq)
-    print(T)
+    # print(T)
     suffix_array = reccursive_sort_s11(T, sorting_algorithm)
     return suffix_array
 
 
 if __name__ == "__main__":
-    test_result_dic = {
-        "acgacgagac$": [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5],
-        "ac$": [2, 0, 1],
-        "acaaca$": [6, 5, 2, 3, 0, 4, 1],
-    }
-    for i, (key, val) in enumerate(test_result_dic.items()):
-        test = dc3(key)
-        print(
-            f"""\n--- TEST {i+1} ---
-Test with n%3=1 char string. Suffix array obtened = {test}
-Is equal to the theorical result ? {(test == val).all()} !"""
-        )
+    # print([1, 5, 7][np.log10(100).astype(int)])
+
+    print("dc3", dc3("acgacgacag"))
+#     test_result_dic = {
+#         "acgacgagac$": [10, 8, 0, 3, 6, 9, 1, 4, 7, 2, 5],
+#         "ac$": [2, 0, 1],
+#         "acaaca$": [6, 5, 2, 3, 0, 4, 1],
+#     }
+#     for i, (key, val) in enumerate(test_result_dic.items()):
+#         test = dc3(key)
+#         print(
+#             f"""\n--- TEST {i+1} ---
+# Test with n%3=1 char string. Suffix array obtened = {test}
+# Is equal to the theorical result ? {(test == val).all()} !"""
+#         )
