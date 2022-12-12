@@ -53,13 +53,14 @@ def create_rank_mat(bwtDna):
         # values we need
         countings = np.zeros(lenDna, dtype=np.int32)
         # We count only one over 32 indexes to be time efficient
-        for i in range(lenDna):
-            if i % 32 == 0:
+        for i in range(lenDna - 1):
+            if i % 50 == 0:
                 # :(i + 1) because we want to include the first & last char of bwtDna
                 countings[i] = bwtDna[:(i + 1)].count(letter)
             else:
                 # row is discarded i.e its rank is not computed
                 countings[i] = -1
+        countings[-1] = bwtDna[:(i + 1)].count(letter)
         rkMat[letter] = countings
     return rkMat
 
