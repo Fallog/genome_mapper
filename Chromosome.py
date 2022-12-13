@@ -17,7 +17,9 @@ class Chromosome:
         self.DNA = seq
         self.DNA_dol = seq + "$"
         self.dc3_path = f"RESULTS/dc3_result_{file_name}.npy"
+        self.bwt_path = f"RESULTS/bwt_result_{file_name}.txt"
         self.suffix_table = None
+        self.bwt = None
         if os.path.isfile(self.dc3_path):
             self.import_dc3_result()
 
@@ -38,8 +40,11 @@ class Chromosome:
                     "Do you want to overwrite old dc3 result for this information ? (y/n) : "
                 ).lower()
             if overwrite.lower() == "y":
-                self.suffix_table = suffix_table
-                np.save(self.dc3_path, suffix_table)
+                if suffix_table is None:
+                    np.save(self.dc3_path, self.suffix_table)
+                else:
+                    self.suffix_table = suffix_table
+                    np.save(self.dc3_path, suffix_table)
         else:
             self.suffix_table = suffix_table
             np.save(self.dc3_path, suffix_table)
@@ -51,16 +56,67 @@ class Chromosome:
             array: Suffixe table.
         """
         if os.path.isfile(self.dc3_path):
-            self.suffix_table = np.load(self.dc3_path)
-            return self.suffix_table
+            if ret:
+                self.suffix_table = np.load(self.dc3_path)
+                return self.suffix_table
+            else:
+                self.suffix_table = np.load(self.dc3_path)
         else:
             print(f"No file at the path {self.dc3_path}.")
 
+    def export_bwt_result(self, bwt=None, overwrite="y") -> None:
+        """Create a .npy file contening our bwt results
+
+        Args:
+            suffix_table (array): result of bwt algorithm
+            overwrite (str, optional):
+                If "y" and file already exist, it is overwrited.
+                If "n", it is not.
+                If something else, it ask what the user want
+                Defaults to "y".
+        """
+        if os.path.isfile(self.dc3_path):
+            while overwrite not in ("y", "n"):
+                overwrite = input(
+                    "Do you want to overwrite old dc3 result for this information ? (y/n) : "
+                ).lower()
+            if overwrite.lower() == "y":
+                if bwt is None:
+                    with open(self.bwt_path, "w") as f:
+                        f.write(self.bwt)
+                else:
+                    self.bwt = bwt
+                    with open(self.bwt_path, "w") as f:
+                        f.write(self.bwt)
+        else:
+            self.bwt = bwt
+            with open(self.bwt_path, "w") as f:
+                f.write(self.bwt)
+
+    def import_bwt_result(self, ret=True):
+        """Return the bwt
+
+        Returns:
+            array: bwt
+        """
+        if os.path.isfile(self.bwt_path):
+            if ret:
+                with open(self.bwt_path, "r") as f:
+                    self.bwt = f.read()
+                return self.bwt
+            else:
+                with open(self.bwt_path, "r") as f:
+                    self.bwt = f.read()
+        else:
+            print(f"No file at the path {self.bwt_path}.")
+
 
 if __name__ == "__main__":
-    a = Chromosome("test_1", "ezad")
+    a = Chromosome("test_1", "ezad", "4")
     a.export_dc3_result([4, 3, 2, 6])
     table = a.import_dc3_result()
+    a.import_bwt_result()
+    print(a.bwt, "bwt")
     print(a.suffix_table)
 
     print(table)
