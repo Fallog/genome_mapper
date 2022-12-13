@@ -89,14 +89,14 @@ def make_tp(r12s, r12):
     tp = np.empty(r12s.size, dtype=int)
     array_without_duplicate = np.unique(r12s)
     d = {
-        mini_hash(val): i
+        tuple(val): i
         for val, i in zip(
             array_without_duplicate, np.arange(array_without_duplicate.size)
         )
     }
     # print(d)
     for i, elem in enumerate(r12):
-        tp[i] = d[mini_hash(elem)] + 1
+        tp[i] = d[tuple(elem)] + 1
     return tp
 
 
