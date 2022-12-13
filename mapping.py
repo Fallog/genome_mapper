@@ -57,7 +57,7 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
     bottom = 0
     top = lenBwt - 1  # Stay in the string boundaries
     i = len(kmer) - 1  # Stay in the kmer boundaries
-    print(f"first bottom: {bottom},  first top: {top}")
+    # print(f"first bottom: {bottom},  first top: {top}")
 
     nbOccur = 1
 
@@ -67,17 +67,17 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
         if X not in bwtDna:
             return False
         else:
-            print(f"i: {i}, X: {X}")
+            # print(f"i: {i}, X: {X}")
 
             firstOcc = bwtSort.index(X) - 1  # $ not counted
-            print(f"First index of {X} in bwtSort: {firstOcc}")
+            # print(f"First index of {X} in bwtSort: {firstOcc}")
 
             # Counts all the occurences of X in bwtDna between an empty
             # rank and the following rank to deduce the rank of an
             # actual index e
             preBot = bottom
             rankBot = rankMat[X][preBot]
-            print(f"rankBot before while: {rankBot}")
+            # print(f"rankBot before while: {rankBot}")
             countBot = 0  # number of times the letter X is met in bwtDna
             # We scan bwtDna for X letter until we reach
             while rankBot == -1:
@@ -86,11 +86,11 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
                     countBot += 1
                 rankBot = rankMat[X][preBot]
             rankBot -= countBot
-            print(f"rankBot after while: {rankBot}")
+            # print(f"rankBot after while: {rankBot}")
 
             preTop = top
             rankTop = rankMat[X][preTop]
-            print(f"rankTop before while: {rankTop}")
+            # print(f"rankTop before while: {rankTop}")
             countTop = 0
             while rankTop == -1:
                 preTop -= 1  # f > e, we decrease to stay in the boundaries
@@ -98,7 +98,7 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
                     countTop += 1
                 rankTop = rankMat[X][preTop]
             rankTop += countTop
-            print(f"rankTop after while: {rankTop}")
+            # print(f"rankTop after while: {rankTop}")
 
             # The first character of the BWT has a rank of 1 in the
             # rank matrix but it is the first appearance of this
@@ -110,14 +110,14 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
             else:
                 bottom = firstOcc + rankBot
             top = firstOcc + rankTop
-            print(f"bottom: {bottom}, top: {top}")
+            # print(f"bottom: {bottom}, top: {top}")
 
             nbOccur = top - bottom  # quantity of elements between 2 indexes
 
             if nbOccur == 0:
                 # print("Kmer not found !")
                 return kmer, np.empty(1)
-            print(f"Number of pattern: {nbOccur}\n")
+            # print(f"Number of pattern: {nbOccur}\n")
 
             # positions of the kmer in the chromosome
             locs = suffixTab[bottom:top]
@@ -175,34 +175,63 @@ def link_kmer(kmerList, locaList):
     locaFirst = locaList[0]  # localisations list of the first kmer
     locaNext = locaList[indKmer]  # localisations list of the following kmer
     read = kmerList[0]
+    bestRead = read
+    bestLoca = locaFirst[indFirst]
     readLen = len(kmerList)  # number of kmer in a read
     kmerLen = len(kmerList[0])  # kmer have all the same size
     while indKmer != readLen:
-        # Si on arrive au bout des localisations, on passe à la
-        # localisation suivante du premier kmer en retournant à
-        # la première localisation du kmer suivant (le 1 donc)
-        if indLoca == len(locaNext):
-            indFirst += 1
-            indKmer = 1
-            indLoca = 0
-            read = kmerList[0]
+        print(f"Length locaFirst: {len(locaFirst)} locaNext: {len(locaNext)}")
+        # If it reaches the last localisation of the first kmer
+        # it
+        if indFirst == len(locaFirst):
+            return bestRead, bestLoca
         else:
-            # Si les localisations se suivent, passer au kmer suivant
-            # tout en revenant à sa première localisation
-            if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
-                read += kmerList[indKmer]
+            # If the next kmer don't have any localisation
+            if len(locaNext) == 1 and locaNext[indLoca] < 1:
+                read += "-" * len(kmerList[0])
                 indKmer += 1
-                indLoca = 0
-
-            else:  # sinon regarder la localisation suivante du kmer actuel
-                if locaFirst[indFirst] + kmerLen * indKmer < locaNext[indLoca]:
-                    indLoca += 1
-                else:
+            else:
+                # Si on arrive au bout des localisations, on passe à la
+                # localisation suivante du premier kmer en retournant à
+                # la première localisation du kmer suivant (le 1 donc)
+                if indLoca == len(locaNext):
+                    print("No more kmer")
                     indFirst += 1
                     indKmer = 1
                     indLoca = 0
+                    read += "-" * len(kmerList[0])
+                else:
+                    print(f"Loca first kmer: {locaFirst[indFirst]}")
+                    print(f"Loca parsed kmer: {locaNext[indLoca]}")
+
+                    # Si les localisations se suivent, passer au kmer suivant
+                    # tout en revenant à sa première localisation
+                    print(
+                        f"indFirst: {indFirst} indKmer: {indKmer} indLoca: {indLoca}")
+                    if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
+                        print("Equal")
+                        read += kmerList[indKmer]
+                        indKmer += 1
+                        indLoca = 0
+
+                    else:  # sinon regarder la localisation suivante du kmer actuel
+                        if locaFirst[indFirst] + kmerLen * indKmer > locaNext[indLoca]:
+                            print("Superior")
+                            indLoca += 1
+                        else:
+                            print("Inferior")
+                            indFirst += 1
+                            indKmer = 1
+                            indLoca = 0
+                            read = kmerList[0]
+
+        # Update if needed the returned read
+        if len(read) > len(bestRead):
+            bestRead = read
+            bestLoca = locaFirst[indFirst]
+        if len(bestRead) == kmerLen * len(kmerList):
+            return bestRead, bestLoca
         locaNext = locaList[indKmer]
-    return read, locaFirst[indFirst]
 
 
 def mapping(chromo, read):
@@ -260,7 +289,7 @@ if __name__ == "__main__":
     for kmer in kmerFstRead:
         locs.append(search_kmer_pos(bwtChromo1, rankMat,
                     chromo1.suffix_table, kmer)[1])
-    print(f"Kmer locs on chromo1: {locs}")
 
     # verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
-    # print(f"Reconstructed read: {link_kmer(kmerFirstRead, locs)}")
+    print(f"Reconstructed read: {link_kmer(kmerFstRead, locs)}")
+    print(f"Kmer locs on chromo1: {locs}")
