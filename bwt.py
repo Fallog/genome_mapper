@@ -45,44 +45,43 @@ def create_rank_mat(bwtDna):
             with the rank table in the dnaSeq of the associated
             character
     """
-    alphabet = ['A', 'T', 'C', 'G', '$']
-    rkMat = {}
+    alphabet = ["A", "T", "C", "G", "$"]
     lenDna = len(bwtDna)
-    for letter in alphabet:
-        # We use int32 because 32 bits is sufficient to store the
-        # values we need
-        countings = np.zeros(lenDna, dtype=np.int32)
-        # We count only one over 32 indexes to be time efficient
-        for i in range(lenDna - 1):
-            if i % 50 == 0:
-                # :(i + 1) because we want to include the first & last char of bwtDna
-                countings[i] = bwtDna[:(i + 1)].count(letter)
-            else:
-                # row is discarded i.e its rank is not computed
-                countings[i] = -1
-        countings[-1] = bwtDna[:(i + 1)].count(letter)
-        rkMat[letter] = countings
+    rkMat = {
+        "A": np.zeros(lenDna, dtype=np.int32),
+        "T": np.zeros(lenDna, dtype=np.int32),
+        "C": np.zeros(lenDna, dtype=np.int32),
+        "G": np.zeros(lenDna, dtype=np.int32),
+        "$": np.zeros(lenDna, dtype=np.int32),
+    }
+    for i, char in enumerate(bwtDna):
+        if i == 0:
+            for other_letter in alphabet:
+                rkMat[other_letter][i] = 0
+        else:
+            for other_letter in alphabet:
+                rkMat[other_letter][i] = rkMat[other_letter][i - 1]
+        rkMat[char][i] += 1
     return rkMat
 
 
 if __name__ == "__main__":
     chromo = []
-    for record in SeqIO.parse("SEQUENCES/P_fal_genome.fna", format="fasta"):
-        chromo.append(str(record.seq))
-    # print(f"chromosome 1: {chromo[0]}")
+    # for record in SeqIO.parse("SEQUENCES/P_fal_genome.fna", format="fasta"):
+    #     chromo.append(Chromosome("P_fal_chromosome_1", record.seq, record.id))
+    # # print(f"chromosome 1: {chromo[0]}")
 
-    s_table = Chromosome("P_fal_chromosome_1", chromo[0]).import_dc3_result()
-    print(f"Suffix table: {s_table}")
+    # s_table = chromo[0].import_dc3_result()
+    # print(f"Suffix table: {s_table}")
 
-    bwtChromo1 = bwt(chromo[0], s_table)  # testing for the first chromosome
-    print(f"bwt: {bwtChromo1[:100]}, type: {type(bwtChromo1)}")
+    # bwtChromo1 = bwt(chromo[0].DNA_dol, s_table)  # testing for the first chromosome
+    # print(f"bwt: {bwtChromo1[:100]}, type: {type(bwtChromo1)}")
 
-    bwtList = list(bwtChromo1)
-    print(f"Sorted BWT list: {sorted(bwtList)[:100]}")
+    # bwtList = list(bwtChromo1)
+    # print(f"Sorted BWT list: {sorted(bwtList)[:100]}")
 
-    rankMat = create_rank_mat(bwtChromo1)
-    print(f"Rank matrix of A: {rankMat['A'][260000:261000]}")
-
+    # rankMat = create_rank_mat(bwtChromo1)
+    # print(f"Rank matrix of A: {rankMat['A'][260000:261000]}")
     # disp = "[ "
     # for count in rankMat['A']:
     #     disp += f" {count}"
