@@ -159,4 +159,5 @@ def less(x: list[int], i: int, j: int, ISA: dict[int, int]) -> bool:
     return less(x, i + 1, j + 1, ISA)
 
 
-print("dc3", skew("acgacgacag"))
+if __name__ == "__main__":
+    print("dc3", skew("acgacgacag"))
