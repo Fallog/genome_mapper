@@ -1,8 +1,8 @@
 import numpy as np
 from Bio import SeqIO
 # import cProfile
-import bwt
-# from RESULTS_LIONEL.Import_DC3_Lionel import import_file
+from tqdm import tqdm
+# import bwt
 from Chromosome import Chromosome
 
 
@@ -45,7 +45,8 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
 
     Return:
         str: kmer argument
-        ndarray: every localisation where kmer can be read
+        ndarray: every localisation where kmer can be read. If no
+        localisation is found, it is an "empty" ndarray -> np.empty(1)
     """
     bwtSort = sorted(list(bwtDna))
     lenBwt = len(bwtDna)
@@ -65,7 +66,7 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
         X = kmer[i]
 
         if X not in bwtDna:
-            return False
+            return kmer, np.empty(1)
         else:
             # print(f"i: {i}, X: {X}")
 
@@ -119,13 +120,13 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
                 return kmer, np.empty(1)
             # print(f"Number of pattern: {nbOccur}\n")
 
-            # positions of the kmer in the chromosome
-            locs = suffixTab[bottom:top]
-
             i -= 1
 
             # True if the entire pattern is crossed
             if i == -1:
+                # Positions of the kmer in the chromosome computed only when
+                # the kmer totally localised to save time
+                locs = suffixTab[bottom:top]
                 return kmer, np.sort(locs, kind="mergesort")
 
     return kmer
@@ -163,8 +164,8 @@ def link_kmer(kmerList, locaList):
     """_summary_
 
     Args:
-        kmerList (_type_): _description_
-        locaList (_type_): _description_
+        kmerList (list[str]): _description_
+        locaList (list[ndarray]): _description_
 
     Returns:
         _type_: _description_
@@ -184,7 +185,7 @@ def link_kmer(kmerList, locaList):
         # If it reaches the last localisation of the first kmer
         # it
         if indFirst == len(locaFirst):
-            return bestRead, bestLoca
+            return bestRead, bestLoca + 1
         else:
             # If the next kmer don't have any localisation
             if len(locaNext) == 1 and locaNext[indLoca] < 1:
@@ -230,7 +231,8 @@ def link_kmer(kmerList, locaList):
             bestRead = read
             bestLoca = locaFirst[indFirst]
         if len(bestRead) == kmerLen * len(kmerList):
-            return bestRead, bestLoca
+            # First base of the genome is set to base 1 and not 0
+            return bestRead, bestLoca + 1
         locaNext = locaList[indKmer]
 
 
@@ -239,57 +241,41 @@ def mapping(chromo, read):
 
 
 if __name__ == "__main__":
-
-    # testRead = """TTTCCTTTTTAAGCGTTTTATTTTTTAATAAAAAAAATATAGTATTATATAGTAACGGGTGAAAAGATCCATATAAATAAATATATGAGGAATATATTAA"""
-    # print(f"Cutting test: {cut_read_to_kmer(testRead, 20, 1)}")  # OK
-    # kmerList = cut_read_to_kmer(testRead, 10, 1)
-
     chromo = []
     for record in SeqIO.parse("SEQUENCES/P_fal_genome.fna", format="fasta"):
         chromo.append(str(record.seq))
-
     chromo1 = Chromosome("P_fal_chromosome_1", chromo[0], 1)
 
     reads = []
+    with tqdm(total=1500000, desc="Reads importation") as pbar:
+        for record in tqdm(SeqIO.parse("SEQUENCES/P_fal_reads.fq", format="fastq")):
+            reads.append((record.seq, record.id))
+            pbar.update(1)
 
-    for record in SeqIO.parse("SEQUENCES/P_fal_reads.fq", format="fastq"):
-        reads.append((record.seq, record.id))
-
-    read1 = str(reads[0][0])
-    # print(f"First read: {read1} length: {len(read1)} type: {type(read1)}")
-    kmerFstRead = cut_read_to_kmer(read1, 10)
+    # First read of mapping_P_fal.sam file
+    readTest = str(reads[100000 - 21515][0])
+    print(f"First read: {readTest} type: {type(readTest)}")
+    kmerFstRead = cut_read_to_kmer(readTest, 10)
     print(f"First kmer: {kmerFstRead}")
 
-    # DC3_chrom1 = import_file("RESULTS_LIONEL/DC3_chrom1.txt", "DC3")
-    # print(
-    #     f"type dc3lionel: {type(DC3_chrom1)} type suffix table {type(chromo1.suffix_table)}")
-    # print(f"Lengths: {len(DC3_chrom1)} {len(chromo1.suffix_table)}")
-    # print(
-    #     f"dc3Lionel: {DC3_chrom1[:100]} {DC3_chrom1[len(DC3_chrom1) - 100:]}\nsuffix table: {chromo1.suffix_table[:100]}")
-    # print(
-    #     f"Comparison array: {compare_ndarray(DC3_chrom1, chromo1.suffix_table)[:100]}")
-    # print(np.where(False, compare_ndarray(DC3_chrom1, chromo1.suffix_table), []))
-
     # testing for the first chromosome
-    bwtChromo1 = bwt.bwt(chromo[0], chromo1.suffix_table)
+    bwtChromo1 = chromo1.bwt
     # print(f"bwt: {bwtChromo1[:10000]}, type: {type(bwtChromo1)}")
 
     bwtList = list(bwtChromo1)
     # print(f"Sorted BWT list: {sorted(bwtList)[:100]}")
 
     # cProfile.run("rankMat = bwt.create_rank_mat(bwtChromo1)")
-    rankMat = bwt.create_rank_mat(bwtChromo1)
+    rankMat = chromo1.rank_mat.item()
     # print(f"Rank matrix of A: {rankMat['A'][260000:261000]}")
 
-    # pattern = "AAAAAAAAAAAAAAAAAAAAAAAAAA"
-    # kmer, locs = search_kmer_pos(
-    #     bwtChromo1, rankMat, chromo1.suffix_table, pattern
-    # )
     locs = []
     for kmer in kmerFstRead:
         locs.append(search_kmer_pos(bwtChromo1, rankMat,
                     chromo1.suffix_table, kmer)[1])
 
     # verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
-    print(f"Reconstructed read: {link_kmer(kmerFstRead, locs)}")
+    recoRead = link_kmer(kmerFstRead, locs)
+    print(f"Reconstructed read: {recoRead} Lenght read: {len(recoRead[0])}")
+    print(f"Actual read: {readTest:>7}")
     print(f"Kmer locs on chromo1: {locs}")
