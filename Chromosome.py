@@ -151,10 +151,10 @@ class Chromosome:
         """
         if os.path.isfile(self.rank_mat_path):
             if ret:
-                self.rank_mat = np.load(self.rank_mat_path, allow_pickle=True)
+                self.rank_mat = np.load(self.rank_mat_path, allow_pickle=True).item()
                 return self.rank_mat
             else:
-                self.rank_mat = np.load(self.rank_mat_path, allow_pickle=True)
+                self.rank_mat = np.load(self.rank_mat_path, allow_pickle=True).item()
         else:
             print(f"No file at the path {self.rank_mat_path}.")
 

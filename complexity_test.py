@@ -39,12 +39,12 @@ def test_dc3():
 
 
 seq = ""
-# for i in range(30000):
-#     seq += random.choice(["A", "C", "G", "T"])
-# seq += "$"
-# st = y.dc3(seq)
-# a = bwt.bwt(seq, st)
-# print(a[-1])
+for i in range(600000):
+    seq += random.choice(["A", "C", "G", "T"])
+seq += "$"
+st = y.dc3(seq)
+a = bwt.bwt(seq, st)
+print(a[-1])
 # b1 = bwt.create_rank_mat(a)
 # b2 = bwt.create_rank_mat2(a)
 
@@ -66,5 +66,5 @@ seq = ""
 # print(b2["G"][-1])
 
 
-# cProfile.run("""bwt.create_rank_mat(a)""")
+cProfile.run("""bwt.create_rank_mat(a)""")
 # cProfile.run("""bwt.create_rank_mat2(a)""")
