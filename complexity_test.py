@@ -32,6 +32,7 @@ def test_dc3():
     # print(a == b)
     print(c)
 
+
 def test_rank_mat():
     seq = ""
     for i in range(1000000):
@@ -52,42 +53,58 @@ def make_rand_seq(lenght: int):
     return seq
 
 
-random.seed(188)
-read = make_rand_seq(10)
-# print(read)
-# res = mapping.cut_read_to_kmer(read, 2)
-# print(res)
-# cProfile.run("mapping.cut_read_to_kmer(read, 500)")
+def test_search():
+    random.seed(188)
+    read = make_rand_seq(10)
+    sf = y.dc3(read)
+    bwt_dna = bwt.bwt(read, sf)
+    rank_mat = bwt.create_rank_mat(bwt_dna)
 
-# a = test_rank_mat()
-# cProfile.run("""bwt.create_rank_mat(a)""")
+    res2 = mapping.search_kmer_pos(bwt_dna, rank_mat, sf, "GA")
+    res_theo = [i for i in range(len(read)) if read.startswith("GA", i)]
+    print("seq :", read)
 
-sf = y.dc3(read)
-bwt_dna = bwt.bwt(read, sf)
-rank_mat = bwt.create_rank_mat(bwt_dna)
+    print("en théorie :", res_theo)
 
-res2 = mapping.search_kmer_pos(bwt_dna, rank_mat, sf, "GA")
-res_theo = [i for i in range(len(read)) if read.startswith("GA", i)]
-print("seq :", read)
+    for i in res_theo:
+        print(read[i : i + 2])
 
+    print("___________")
+    print("seq :", read)
 
-print("en théorie :", res_theo)
+    print("ton res :", res2)
 
-for i in res_theo:
-    print(read[i : i + 2])
-
-
-print("___________")
-print("seq :", read)
+    for i in res2[1]:
+        print(read[i : i + 2])
 
 
-print("ton res :", res2)
+def map_base(nb, gen, big_r):
+    # cProfile.run("""mapping.cut_read_to_kmer(big_r, 100)""")
 
-for i in res2[1]:
-    print(read[i : i + 2])
+    r = mapping.cut_read_to_kmer(big_r, 10)
+    print(len(r))
+    l = [0] * (nb)
+    for j in range(nb):
+        res_theo = [i for i in range(len(gen)) if gen.startswith(r[j], i)]
+        l[j] = res_theo
+    return l
 
-print(seq)
-print(len(seq))
-print(mapping.cut_read_to_kmer(seq, 10))
 
-# cProfile.run("""mapping.cut_read_to_kmer("seq", 10)""")
+def map_adv(nb, gen, big_r):  # TROP LONG
+    import test_mapping
+
+    r = mapping.cut_read_to_kmer(big_r, 10)
+    l = [0] * (nb)
+    for i in range(nb):
+        l[i] = test_mapping.find(r[i], gen)
+    return l
+
+
+# random.seed(15)
+# gen = make_rand_seq(150000)
+# big_r = make_rand_seq(1500)
+# # print(map_base(1))
+# # print(map_base(1, gen, big_r))
+# # print(map_adv(5, gen, big_r))
+# cProfile.run("""map_base(5, gen, big_r)""")
+# cProfile.run("""map_adv(5, gen, big_r)""")
