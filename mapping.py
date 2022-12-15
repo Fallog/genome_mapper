@@ -153,19 +153,7 @@ def cut_read_to_kmer(read: str, kLen: int):
         list[str]: list of all the k-mer created from the read
     """
     readLen = len(read)  # performance
-    kmerList = [0] * (readLen // kLen)
-    readCnt = 0
-    kCnt = 0
-    while readCnt <= readLen - kLen:
-        kmerList[kCnt] = (read[readCnt:readCnt + kLen])
-        readCnt += kLen
-        kCnt += 1
-
-    # Adding remaining nucleotides in case of non divisible k_len
-    if readLen % kLen == 0:
-        return kmerList
-    else:
-        return kmerList + read[readCnt:]
+    return [read[i: i + kLen] for i in range(readLen - kLen)]
 
 
 def link_kmer(kmerList, locaList):
