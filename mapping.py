@@ -1,22 +1,24 @@
 import numpy as np
 from Bio import SeqIO
+
 # import cProfile
 from tqdm import tqdm
+
 # import bwt
 from Chromosome import Chromosome
 
 
 def verification_pattern(chromo, kmer, locs):
     kmerL = kmer.lower()
-    print(
-        f"Number of kmer in the chromosome: {chromo.count(kmerL)}")
+    print(f"Number of kmer in the chromosome: {chromo.count(kmerL)}")
     print(f"Kmer length: {len(kmerL)}")
     i = 1
     for loc in locs:
 
         print(f"{i:>3} loc: {loc}")
         print(
-            f"{chromo[loc -10:loc]}--{chromo[loc:loc + len(kmer)]}--{chromo[loc + len(kmer) +1:loc + len(kmer) + 11]}")
+            f"{chromo[loc -10:loc]}--{chromo[loc:loc + len(kmer)]}--{chromo[loc + len(kmer) +1:loc + len(kmer) + 11]}"
+        )
         i += 1
 
 
@@ -145,19 +147,7 @@ def cut_read_to_kmer(read: str, kLen: int):
         list[str]: list of all the k-mer created from the read
     """
     readLen = len(read)  # performance
-    kmerList = [0] * (readLen // kLen)
-    readCnt = 0
-    kCnt = 0
-    while readCnt <= readLen - kLen:
-        kmerList[kCnt] = (read[readCnt:readCnt + kLen])
-        readCnt += kLen
-        kCnt += 1
-
-    # Adding remaining nucleotides in case of non divisible k_len
-    if readLen % kLen == 0:
-        return kmerList
-    else:
-        return kmerList + read[readCnt:]
+    return [read[i: i + kLen] for i in range(readLen - kLen)]
 
 
 def link_kmer(kmerList, locaList):
@@ -365,7 +355,6 @@ if __name__ == "__main__":
     for kmer in kmerFstRead:
         locs.append(search_kmer_pos(bwtChromo1, rankMat,
                     chromo1.suffix_table, kmer)[1])
-    print(f"Kmer locs on chromo1: {locs} length: {len(locs)}")
 
     # verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
     # recoRead = link_kmer(kmerFstRead, locs)
