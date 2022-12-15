@@ -4,7 +4,8 @@ from Bio import SeqIO
 # import cProfile
 from tqdm import tqdm
 
-# import bwt
+import bwt
+from dc3 import dc3
 from Chromosome import Chromosome
 
 
@@ -28,12 +29,23 @@ def verification_pattern(chromo, kmer, locs):
         i += 1
 
 
-def compare_ndarray(array1, array2):
-    resArray = []
-    length = len(array1)
-    for i in range(length):
-        resArray.append(array1[i] == array2[i])
-    return resArray
+def get_first_occ(bwtDna, base):
+    """_summary_
+
+    Args:
+        rankTable (dict): _description_
+
+    Returns:
+        int: _description_
+    """
+    if base == "A":
+        return 0
+    elif base == "C":
+        return bwtDna.count("A")
+    elif base == "G":
+        return bwtDna.count("A") + bwtDna.count("C")
+    else:
+        return bwtDna.count("A") + bwtDna.count("C") + bwtDna.count("G")
 
 
 def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
@@ -56,86 +68,41 @@ def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
         ndarray: every localisation where kmer can be read. If no
         localisation is found, it is an "empty" ndarray -> np.empty(1)
     """
-    bwtSort = sorted(list(bwtDna))
     lenBwt = len(bwtDna)
     # print(f"Sorted BWT: {bwtSort}")
-
     firstBase = bwtDna[0]
     # print(f"First letter: {firstBase}")
-
-    bottom = 0
-    top = lenBwt - 1  # Stay in the string boundaries
+    bottom = 0  # Low boundary of the kmer search
+    top = lenBwt - 1  # High boundary of the kmer search
     i = len(kmer) - 1  # Stay in the kmer boundaries
     # print(f"first bottom: {bottom},  first top: {top}")
-
     nbOccur = 1
-
     while nbOccur > 0 and i >= 0:
         X = kmer[i]
-
-        if X not in bwtDna:
-            return kmer, np.empty(1)
+        # print(f"i: {i}, X: {X}")
+        # Index of the first occurence of letter X in the rank matrix
+        firstOcc = get_first_occ(bwtDna, X)
+        # print(f"First apparition of {X} in sorted bwt: {firstOcc}")
+        if bottom == 0 and X == firstBase:
+            bottom = firstOcc + rankMat[X][bottom]
         else:
-            # print(f"i: {i}, X: {X}")
+            bottom = firstOcc + rankMat[X][bottom]
+        top = firstOcc + rankMat[X][top]
+        # print(f"bottom: {bottom}, top: {top}")
+        nbOccur = top - bottom + 1  # quantity of elements between 2 indexes
+        # print(f"Number of locs: {nbOccur}\n")
 
-            firstOcc = bwtSort.index(X) - 1  # $ not counted
-            # print(f"First index of {X} in bwtSort: {firstOcc}")
+        if nbOccur == 0:
+            # print("Kmer not found !")
+            return kmer, np.empty(1)
 
-            # Counts all the occurences of X in bwtDna between an empty
-            # rank and the following rank to deduce the rank of an
-            # actual index e
-            preBot = bottom
-            rankBot = rankMat[X][preBot]
-            # print(f"rankBot before while: {rankBot}")
-            countBot = 0  # number of times the letter X is met in bwtDna
-            # We scan bwtDna for X letter until we reach
-            while rankBot == -1:
-                preBot += 1  # e < f, we increase to stay in the boundaries
-                if bwtDna[preBot] == X:
-                    countBot += 1
-                rankBot = rankMat[X][preBot]
-            rankBot -= countBot
-            # print(f"rankBot after while: {rankBot}")
-
-            preTop = top
-            rankTop = rankMat[X][preTop]
-            # print(f"rankTop before while: {rankTop}")
-            countTop = 0
-            while rankTop == -1:
-                preTop -= 1  # f > e, we decrease to stay in the boundaries
-                if bwtDna[preTop] == X:
-                    countTop += 1
-                rankTop = rankMat[X][preTop]
-            rankTop += countTop
-            # print(f"rankTop after while: {rankTop}")
-
-            # The first character of the BWT has a rank of 1 in the
-            # rank matrix but it is the first appearance of this
-            # character. To take into account this information, we
-            # decrease e of 1 in presence of this character, i.e when
-            # there is no character before it
-            if bottom == 0 and X == firstBase:
-                bottom = firstOcc + rankBot - 1
-            else:
-                bottom = firstOcc + rankBot
-            top = firstOcc + rankTop
-            # print(f"bottom: {bottom}, top: {top}")
-
-            nbOccur = top - bottom  # quantity of elements between 2 indexes
-
-            if nbOccur == 0:
-                # print("Kmer not found !")
-                return kmer, np.empty(1)
-            # print(f"Number of pattern: {nbOccur}\n")
-
-            i -= 1
-
-            # True if the entire pattern is crossed
-            if i == -1:
-                # Positions of the kmer in the chromosome computed only when
-                # the kmer totally localised to save time
-                locs = suffixTab[bottom:top]
-                return kmer, np.sort(locs, kind="mergesort")
+        i -= 1
+        # True if the entire pattern is crossed
+        if i == -1:
+            # Positions of the kmer in the chromosome computed only when
+            # the kmer totally localised to save time
+            locs = suffixTab[bottom:top + 1]
+            return kmer, np.sort(locs, kind="mergesort")
 
     return kmer
 
@@ -367,15 +334,25 @@ if __name__ == "__main__":
             pbar.update(1)
     chromo1 = Chromosome("P_fal_chromosome_1", chromo[0], 1)
 
-    reads = []
-    with tqdm(total=1500000, desc="Reads importation") as pbar:
-        for record in tqdm(SeqIO.parse("SEQUENCES/P_fal_reads.fq", format="fastq")):
-            reads.append((record.seq, record.id))
-            pbar.update(1)
+    seq = "ATAATA$"
+    suffixT = dc3(seq=seq)
+    print(f"suffix array: {suffixT}")
+    bwtSeq = bwt.bwt(seq, suffixT)
+    print(f"bwt: {bwtSeq}")
+    rkMtSeq = bwt.create_rank_mat(bwtSeq)
+    print(f"rank matrix: A: {rkMtSeq['A']} & B: {rkMtSeq['T']}")
+    print(f"Sorted bwt: {sorted(list(bwtSeq))}")
+    # print(f"Loca: {search_kmer_pos(bwtSeq, rkMtSeq, suffixT, 'ATA')}")
 
-    # First read of mapping_P_fal.sam file
-    readTest = str(reads[100000 - 21515][0])
-    print(f"First read: {readTest} type: {type(readTest)}")
+    # reads = []
+    # with tqdm(total=1500000, desc="Reads importation") as pbar:
+    #     for record in tqdm(SeqIO.parse("SEQUENCES/P_fal_reads.fq", format="fastq")):
+    #         reads.append((record.seq, record.id))
+    #         pbar.update(1)
+    # # First read of mapping_P_fal.sam file
+    # readTest = str(reads[100000 - 21515][0])
+    # print(f"First read: {readTest} type: {type(readTest)}")
+    readTest = "AAACCCTGAACCCTAAACCCTGAACCCTAAACCCTAAACCCTGAACCCTAAACCCTAAACCCTGAACCCTAAACCCTGAAACCTAAAACCTGAACCCTAA"
     kmerFstRead = cut_read_to_kmer(readTest, 10)
     print(f"First kmer: {kmerFstRead}")
 
@@ -383,24 +360,22 @@ if __name__ == "__main__":
     bwtChromo1 = chromo1.bwt
     # print(f"bwt: {bwtChromo1[:10000]}, type: {type(bwtChromo1)}")
 
-    bwtList = list(bwtChromo1)
-    # print(f"Sorted BWT list: {sorted(bwtList)[:100]}")
+    rankMat = chromo1.rank_mat
+    # print(f"First occ of C {get_first_occ(rankMat, 'C')}")  # OK
+    # print(f"Rank matrix of C: {rankMat['C'][:100]}")
 
-    # cProfile.run("rankMat = bwt.create_rank_mat(bwtChromo1)")
-    rankMat = chromo1.rank_mat.item()
-    # print(f"Rank matrix of A: {rankMat['A'][260000:261000]}")
-
-    locs = []
-    for kmer in kmerFstRead:
-        locs.append(search_kmer_pos(bwtChromo1, rankMat,
-                    chromo1.suffix_table, kmer)[1])
+    locs = search_kmer_pos(bwtChromo1, rankMat,
+                           chromo1.suffix_table, kmerFstRead[0])[1]
+    # for kmer in kmerFstRead:
+    #     locs.append(search_kmer_pos(bwtChromo1, rankMat,
+    #                 chromo1.suffix_table, kmer)[1])
     print(f"Kmers localisation: {locs}")
-    verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
-    recoReadFst = link_kmer_fast(kmerFstRead, locs)
-    print(f"Reconstructed read: {recoReadFst}")
-    qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
-    qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
-    print(f"Type output link_kmer: {type(recoReadFst[1][0])}")
-    print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
+    verification_pattern(chromo1.DNA, kmerFstRead[0], locs)
+    # recoReadFst = link_kmer_fast(kmerFstRead, locs)
+    # print(f"Reconstructed read: {recoReadFst}")
+    # qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
+    # qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
+    # print(f"Type output link_kmer: {type(recoReadFst[1][0])}")
+    # print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
     # print(f"Reconstructed read: {recoRead} Lenght read: {len(recoRead[0])}")
     # print(f"Actual read: {readTest:>7}")

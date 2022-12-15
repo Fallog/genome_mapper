@@ -1,6 +1,6 @@
 import numpy as np
-from Chromosome import Chromosome
-from Bio import SeqIO
+# from Chromosome import Chromosome
+# from Bio import SeqIO
 
 
 def bwt(dna, suffixTable, end_of_string="$"):
@@ -21,7 +21,7 @@ def bwt(dna, suffixTable, end_of_string="$"):
     for i in range(len(suffixTable)):
         # Chromosomes have sometimes bases in lowercase
         if suffixTable[i] == 0:
-            bwtStr += "$"
+            bwtStr += end_of_string
         else:
             bwtStr += dna[suffixTable[i] - 1].capitalize()
 
