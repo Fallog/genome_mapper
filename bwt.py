@@ -33,7 +33,7 @@ def create_rank_mat(bwtDna):
     the dnaSeq argument.
     A rank table is an array containing, for each character of bwtDna
     and at each position, the number of occurences of the character
-    until now. Because its creation is costful, we decide to count only
+    until this position. Because its creation is costful, we decide to count only
     one over 32 indexes, the rank checkpoint. The remaining indexes are
     discarded, filled with -1.
 

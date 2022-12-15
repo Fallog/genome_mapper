@@ -176,16 +176,17 @@ def link_kmer(kmerList, locaList):
     locaFirst = locaList[0]  # localisations list of the first kmer
     locaNext = locaList[indKmer]  # localisations list of the following kmer
     read = kmerList[0]
-    bestRead = read
-    bestLoca = locaFirst[indFirst]
+    # bestRead = read
+    # bestLoca = locaFirst[indFirst]
     readLen = len(kmerList)  # number of kmer in a read
     kmerLen = len(kmerList[0])  # kmer have all the same size
+    linkedKmer = 0
     while indKmer != readLen:
         print(f"Length locaFirst: {len(locaFirst)} locaNext: {len(locaNext)}")
         # If it reaches the last localisation of the first kmer
         # it
         if indFirst == len(locaFirst):
-            return bestRead, bestLoca + 1
+            return read, locaFirst[indFirst] + 1
         else:
             # If the next kmer don't have any localisation
             if len(locaNext) == 1 and locaNext[indLoca] < 1:
@@ -196,11 +197,16 @@ def link_kmer(kmerList, locaList):
                 # localisation suivante du premier kmer en retournant à
                 # la première localisation du kmer suivant (le 1 donc)
                 if indLoca == len(locaNext):
-                    print("No more kmer")
-                    indFirst += 1
-                    indKmer = 1
-                    indLoca = 0
-                    read += "-" * len(kmerList[0])
+                    if linkedKmer == 0:
+                        print("No more kmer")
+                        indFirst += 1
+                        indKmer = 1
+                        indLoca = 0
+                        read = kmerList[0]
+                    else:
+                        indLoca += 1
+                        read += "-" * len(kmerList[0])
+                    linkedKmer = 0
                 else:
                     print(f"Loca first kmer: {locaFirst[indFirst]}")
                     print(f"Loca parsed kmer: {locaNext[indLoca]}")
@@ -212,6 +218,7 @@ def link_kmer(kmerList, locaList):
                     if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
                         print("Equal")
                         read += kmerList[indKmer]
+                        linkedKmer += 1
                         indKmer += 1
                         indLoca = 0
 
@@ -227,13 +234,96 @@ def link_kmer(kmerList, locaList):
                             read = kmerList[0]
 
         # Update if needed the returned read
-        if len(read) > len(bestRead):
-            bestRead = read
-            bestLoca = locaFirst[indFirst]
-        if len(bestRead) == kmerLen * len(kmerList):
+        # if len(read) > len(bestRead):
+        #     bestRead = read
+        #     bestLoca = locaFirst[indFirst]
+        if len(read) == kmerLen * len(kmerList):
             # First base of the genome is set to base 1 and not 0
-            return bestRead, bestLoca + 1
+            return read, locaFirst[indFirst] + 1
         locaNext = locaList[indKmer]
+
+
+def get_read_quality(locaFst, locaList, kmerLen) -> int:
+    """_summary_
+
+    Args:
+        locaFst (_type_): _description_
+        locaList (_type_): _description_
+        kmerLen (_type_): _description_
+
+    Returns:
+        int: _description_
+    """
+    targetLoca = [locaFst + (i * kmerLen) for i in range(1, kmerLen)]
+    print(f"Locs we are looking for: {targetLoca}")
+    # Counter giving the number of unplaced kmer between the extreme reads
+    mismatchKmer = 0
+    indKmer = 1  # Index specifying on which kmer we are
+    indParsed = 0  # Index to parse the localisations of inside locaList
+    indTarg = 0  # Index to parse targetLoca
+    while indKmer < kmerLen - 1:
+        locaParsed = locaList[indKmer]
+        print(f"Locations parsed: {locaParsed} len: {len(locaParsed)}")
+        # If it reaches the end of actual localisation list
+        # before returning anything go to next kmer but count one
+        # unplaced kmer
+        if indParsed == len(locaParsed):
+            print(f"indParsed: {indParsed}")
+            indKmer += 1
+            indTarg += 1
+            indParsed = 0
+            mismatchKmer += 1
+        else:
+            # If
+            if locaParsed[indParsed] == targetLoca[indTarg]:
+                print("Found !")
+                indKmer += 1
+                indTarg += 1
+                indParsed = 0
+            else:
+                indParsed += 1
+    return mismatchKmer
+
+
+def link_kmer_fast(kmerlist: list[str], locaList, maxError=0):
+    kmerNb = len(kmerlist)
+    kmerLen = len(kmerlist[0])
+    fstLoca = locaList[0]
+    lstLoca = locaList[-1]
+    fstInd = 0
+    lstInd = 0
+    read = "".join(kmerlist)
+    # If first or last kmer have 0 localisation, return 0 localisation
+    # for the read
+    if len(lstLoca) == 1 and lstLoca[0] < 1:
+        print("No kmer localisation")
+        return read, np.empty(1)
+    if len(fstLoca) == 1 and fstLoca[0]:
+        print("No kmer localisation")
+        return read, np.empty(1)
+    locaRead = []
+    while fstInd != len(fstLoca):
+        if lstInd == len(lstLoca):
+            print("Next first localisation")
+            fstInd += 1
+            lstInd = 0
+        else:
+            expLocaMin = fstLoca[fstInd] + kmerLen * (kmerNb - 1) - maxError
+            expLocaMax = expLocaMin + (maxError * 2)
+            if expLocaMin >= lstLoca[lstInd] or expLocaMax >= lstLoca[lstInd]:
+                if expLocaMin == lstLoca[lstInd] or expLocaMax == lstLoca[lstInd]:
+                    # print("Equal")
+                    locaRead.append(fstLoca[fstInd])
+                    fstInd += 1
+                    lstInd = 0
+                else:
+                    # print("Superior")
+                    lstInd += 1
+            else:
+                # wprint("Inferior")
+                fstInd += 1
+                lstInd = 0
+    return read, np.array(locaRead)
 
 
 def mapping(chromo, read):
@@ -242,8 +332,10 @@ def mapping(chromo, read):
 
 if __name__ == "__main__":
     chromo = []
-    for record in SeqIO.parse("SEQUENCES/P_fal_genome.fna", format="fasta"):
-        chromo.append(str(record.seq))
+    with tqdm(total=15, desc="Chromosomes importation") as pbar:
+        for record in SeqIO.parse("SEQUENCES/P_fal_genome.fna", format="fasta"):
+            chromo.append(str(record.seq))
+            pbar.update(1)
     chromo1 = Chromosome("P_fal_chromosome_1", chromo[0], 1)
 
     reads = []
@@ -273,9 +365,14 @@ if __name__ == "__main__":
     for kmer in kmerFstRead:
         locs.append(search_kmer_pos(bwtChromo1, rankMat,
                     chromo1.suffix_table, kmer)[1])
+    print(f"Kmer locs on chromo1: {locs} length: {len(locs)}")
 
     # verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
-    recoRead = link_kmer(kmerFstRead, locs)
-    print(f"Reconstructed read: {recoRead} Lenght read: {len(recoRead[0])}")
-    print(f"Actual read: {readTest:>7}")
-    print(f"Kmer locs on chromo1: {locs}")
+    # recoRead = link_kmer(kmerFstRead, locs)
+    recoReadFst = link_kmer_fast(kmerFstRead, locs)
+    print(f"Reconstructed read: {recoReadFst}")
+    qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
+    qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
+    print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
+    # print(f"Reconstructed read: {recoRead} Lenght read: {len(recoRead[0])}")
+    # print(f"Actual read: {readTest:>7}")
