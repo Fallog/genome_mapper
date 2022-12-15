@@ -60,7 +60,7 @@ def make_rand_seq(lenght: int):
 
 
 random.seed(188)
-read = make_rand_seq(30)
+read = make_rand_seq(10)
 # print(read)
 # res = mapping.cut_read_to_kmer(read, 2)
 # print(res)
@@ -75,11 +75,20 @@ rank_mat = bwt.create_rank_mat(bwt_dna)
 
 res2 = mapping.search_kmer_pos(bwt_dna, rank_mat, sf, "GA")
 res_theo = [i for i in range(len(read)) if read.startswith("GA", i)]
-print(res_theo)
-print(res2)
+print("seq :", read)
+
+
+print("en théorie :", res_theo)
 
 for i in res_theo:
     print(read[i : i + 2])
+
+
 print("___________")
+print("seq :", read)
+
+
+print("ton res :", res2)
+
 for i in res2[1]:
     print(read[i : i + 2])
