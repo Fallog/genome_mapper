@@ -1,22 +1,24 @@
 import numpy as np
 from Bio import SeqIO
+
 # import cProfile
 from tqdm import tqdm
+
 # import bwt
 from Chromosome import Chromosome
 
 
 def verification_pattern(chromo, kmer, locs):
     kmerL = kmer.lower()
-    print(
-        f"Number of kmer in the chromosome: {chromo.count(kmerL)}")
+    print(f"Number of kmer in the chromosome: {chromo.count(kmerL)}")
     print(f"Kmer length: {len(kmerL)}")
     i = 1
     for loc in locs:
 
         print(f"{i:>3} loc: {loc}")
         print(
-            f"{chromo[loc -10:loc]}--{chromo[loc:loc + len(kmer)]}--{chromo[loc + len(kmer) +1:loc + len(kmer) + 11]}")
+            f"{chromo[loc -10:loc]}--{chromo[loc:loc + len(kmer)]}--{chromo[loc + len(kmer) +1:loc + len(kmer) + 11]}"
+        )
         i += 1
 
 
@@ -365,14 +367,13 @@ if __name__ == "__main__":
     for kmer in kmerFstRead:
         locs.append(search_kmer_pos(bwtChromo1, rankMat,
                     chromo1.suffix_table, kmer)[1])
-    print(f"Kmer locs on chromo1: {locs} length: {len(locs)}")
-
-    # verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
+    print(f"Kmers localisation: {locs}")
+    verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
     # recoRead = link_kmer(kmerFstRead, locs)
-    recoReadFst = link_kmer_fast(kmerFstRead, locs)
-    print(f"Reconstructed read: {recoReadFst}")
-    qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
-    qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
-    print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
+    # recoReadFst = link_kmer_fast(kmerFstRead, locs)
+    # print(f"Reconstructed read: {recoReadFst}")
+    # qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
+    # qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
+    # print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
     # print(f"Reconstructed read: {recoRead} Lenght read: {len(recoRead[0])}")
     # print(f"Actual read: {readTest:>7}")
