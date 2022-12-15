@@ -153,19 +153,7 @@ def cut_read_to_kmer(read: str, kLen: int):
         list[str]: list of all the k-mer created from the read
     """
     readLen = len(read)  # performance
-    kmerList = [0] * (readLen // kLen)
-    readCnt = 0
-    kCnt = 0
-    while readCnt <= readLen - kLen:
-        kmerList[kCnt] = (read[readCnt:readCnt + kLen])
-        readCnt += kLen
-        kCnt += 1
-
-    # Adding remaining nucleotides in case of non divisible k_len
-    if readLen % kLen == 0:
-        return kmerList
-    else:
-        return kmerList + read[readCnt:]
+    return [read[i : i + kLen] for i in range(0, readLen, kLen)]
 
 
 def link_kmer(kmerList, locaList):
@@ -221,8 +209,7 @@ def link_kmer(kmerList, locaList):
 
                     # Si les localisations se suivent, passer au kmer suivant
                     # tout en revenant à sa première localisation
-                    print(
-                        f"indFirst: {indFirst} indKmer: {indKmer} indLoca: {indLoca}")
+                    print(f"indFirst: {indFirst} indKmer: {indKmer} indLoca: {indLoca}")
                     if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
                         print("Equal")
                         read += kmerList[indKmer]
@@ -392,8 +379,7 @@ if __name__ == "__main__":
 
     locs = []
     for kmer in kmerFstRead:
-        locs.append(search_kmer_pos(bwtChromo1, rankMat,
-                    chromo1.suffix_table, kmer)[1])
+        locs.append(search_kmer_pos(bwtChromo1, rankMat, chromo1.suffix_table, kmer)[1])
     print(f"Kmers localisation: {locs}")
     verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
     recoReadFst = link_kmer_fast(kmerFstRead, locs)

@@ -39,32 +39,13 @@ def test_dc3():
 
 
 seq = ""
-for i in range(600000):
+for i in range(15):
     seq += random.choice(["A", "C", "G", "T"])
 seq += "$"
-st = y.dc3(seq)
-a = bwt.bwt(seq, st)
-print(a[-1])
-# b1 = bwt.create_rank_mat(a)
-# b2 = bwt.create_rank_mat2(a)
+import mapping
 
-# c = np.where((b1["A"] == b2["A"]) == False)
-# d = np.where((b1["C"] == b2["C"]) == False)
-# e = np.where((b1["G"] == b2["G"]) == False)
+print(seq)
+print(len(seq))
+print(mapping.cut_read_to_kmer(seq, 10))
 
-# print(c)
-# print(d)
-# print(e)
-
-# print(b1["A"][-1])
-# print(b2["A"][-1])
-
-# print(b1["C"][-1])
-# print(b2["C"][-1])
-
-# print(b1["G"][-1])
-# print(b2["G"][-1])
-
-
-cProfile.run("""bwt.create_rank_mat(a)""")
-# cProfile.run("""bwt.create_rank_mat2(a)""")
+# cProfile.run("""mapping.cut_read_to_kmer("seq", 10)""")
