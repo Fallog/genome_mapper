@@ -24,12 +24,6 @@ def test_dc3():
     # print(y.dc3(seq, Tru2
     a = y.dc3(seq, "mergesort")
 
-    ## SAIS TEST : PAS OPTI FINALLEMENT
-    # test = Sais()
-    # d = tools.strToBase(seq) - 1
-    # a = test.build_suffix_array(d)
-    # cProfile.run("""test.build_suffix_array(d)""")
-
     cProfile.run("""dc3_test.skew(seq)""")
     b = dc3_test.skew(seq)
 
@@ -37,7 +31,6 @@ def test_dc3():
     # print(c[0].size)
     # print(a == b)
     print(c)
-
 
 def test_rank_mat():
     seq = ""
@@ -92,3 +85,9 @@ print("ton res :", res2)
 
 for i in res2[1]:
     print(read[i : i + 2])
+
+print(seq)
+print(len(seq))
+print(mapping.cut_read_to_kmer(seq, 10))
+
+# cProfile.run("""mapping.cut_read_to_kmer("seq", 10)""")
