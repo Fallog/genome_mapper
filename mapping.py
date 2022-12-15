@@ -9,8 +9,14 @@ from Chromosome import Chromosome
 
 
 def verification_pattern(chromo, kmer, locs):
+    """_summary_
+
+    Args:
+        chromo (str): _description_
+        kmer (str): _description_
+        locs (ndarray): _description_
+    """
     kmerL = kmer.lower()
-    print(f"Number of kmer in the chromosome: {chromo.count(kmerL)}")
     print(f"Kmer length: {len(kmerL)}")
     i = 1
     for loc in locs:
@@ -245,11 +251,14 @@ def link_kmer(kmerList, locaList):
         locaNext = locaList[indKmer]
 
 
-def get_read_quality(locaFst, locaList, kmerLen) -> int:
-    """_summary_
+def get_read_quality(locaFst, locaList, kmerLen):
+    """Returns the "quality" of a read, i.e the number of localisation
+    it is possible to retrieve between the 2 extreme localisations
+    (first and last of locaList)
+
 
     Args:
-        locaFst (_type_): _description_
+        locaFst (numpy.int64):
         locaList (_type_): _description_
         kmerLen (_type_): _description_
 
@@ -257,7 +266,7 @@ def get_read_quality(locaFst, locaList, kmerLen) -> int:
         int: _description_
     """
     targetLoca = [locaFst + (i * kmerLen) for i in range(1, kmerLen)]
-    print(f"Locs we are looking for: {targetLoca}")
+    # print(f"Locs we are looking for: {targetLoca}")
     # Counter giving the number of unplaced kmer between the extreme reads
     mismatchKmer = 0
     indKmer = 1  # Index specifying on which kmer we are
@@ -265,20 +274,21 @@ def get_read_quality(locaFst, locaList, kmerLen) -> int:
     indTarg = 0  # Index to parse targetLoca
     while indKmer < kmerLen - 1:
         locaParsed = locaList[indKmer]
-        print(f"Locations parsed: {locaParsed} len: {len(locaParsed)}")
+        # print(f"Locations parsed: {locaParsed} len: {len(locaParsed)}")
         # If it reaches the end of actual localisation list
         # before returning anything go to next kmer but count one
         # unplaced kmer
         if indParsed == len(locaParsed):
-            print(f"indParsed: {indParsed}")
+            # print(f"indParsed: {indParsed}")
             indKmer += 1
             indTarg += 1
             indParsed = 0
             mismatchKmer += 1
         else:
-            # If
+            # If the positions match then go to next kmer and next target
+            # localisation
             if locaParsed[indParsed] == targetLoca[indTarg]:
-                print("Found !")
+                # print("Found !")
                 indKmer += 1
                 indTarg += 1
                 indParsed = 0
@@ -287,33 +297,50 @@ def get_read_quality(locaFst, locaList, kmerLen) -> int:
     return mismatchKmer
 
 
-def link_kmer_fast(kmerlist: list[str], locaList, maxError=0):
-    kmerNb = len(kmerlist)
-    kmerLen = len(kmerlist[0])
+def link_kmer_fast(kmerList, locaList):
+    """Returns the reconstructed read and its localisation on a
+    chromosome.
+    Linkage of the 2 extreme kmers of kmerList (first and last) consists
+    in finding if the localisation of the last is equal to the
+    localisation of the first + N-1 times the length of a kmer, (N being
+    the number of kmer in kmerList).
+
+    Args:
+        kmerlist (list[str]): list of every kmer of a given read, output
+            of cut_read_to_kmer function
+        locaList (ndarray): array of every localisation for each kmer
+            in kmerList, output of search_kmer_pos
+
+    Returns:
+        str: read built from all the kmer in kmerList
+        ndarray: localisation of the read on a given chromosome,
+            np.empty(1) if no localisation is found
+    """
+    kmerNb = len(kmerList)
+    kmerLen = len(kmerList[0])
     fstLoca = locaList[0]
     lstLoca = locaList[-1]
     fstInd = 0
     lstInd = 0
-    read = "".join(kmerlist)
+    read = "".join(kmerList)
     # If first or last kmer have 0 localisation, return 0 localisation
     # for the read
     if len(lstLoca) == 1 and lstLoca[0] < 1:
-        print("No kmer localisation")
+        # print("No kmer localisation")
         return read, np.empty(1)
     if len(fstLoca) == 1 and fstLoca[0]:
-        print("No kmer localisation")
+        # print("No kmer localisation")
         return read, np.empty(1)
     locaRead = []
     while fstInd != len(fstLoca):
         if lstInd == len(lstLoca):
-            print("Next first localisation")
+            # print("Next first localisation")
             fstInd += 1
             lstInd = 0
         else:
-            expLocaMin = fstLoca[fstInd] + kmerLen * (kmerNb - 1) - maxError
-            expLocaMax = expLocaMin + (maxError * 2)
-            if expLocaMin >= lstLoca[lstInd] or expLocaMax >= lstLoca[lstInd]:
-                if expLocaMin == lstLoca[lstInd] or expLocaMax == lstLoca[lstInd]:
+            expLoca = fstLoca[fstInd] + kmerLen * (kmerNb - 1)
+            if expLoca >= lstLoca[lstInd]:
+                if expLoca == lstLoca[lstInd]:
                     # print("Equal")
                     locaRead.append(fstLoca[fstInd])
                     fstInd += 1
@@ -369,11 +396,11 @@ if __name__ == "__main__":
                     chromo1.suffix_table, kmer)[1])
     print(f"Kmers localisation: {locs}")
     verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
-    # recoRead = link_kmer(kmerFstRead, locs)
-    # recoReadFst = link_kmer_fast(kmerFstRead, locs)
-    # print(f"Reconstructed read: {recoReadFst}")
-    # qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
-    # qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
-    # print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
+    recoReadFst = link_kmer_fast(kmerFstRead, locs)
+    print(f"Reconstructed read: {recoReadFst}")
+    qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
+    qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
+    print(f"Type output link_kmer: {type(recoReadFst[1][0])}")
+    print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
     # print(f"Reconstructed read: {recoRead} Lenght read: {len(recoRead[0])}")
     # print(f"Actual read: {readTest:>7}")
