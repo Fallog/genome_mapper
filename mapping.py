@@ -144,8 +144,9 @@ def link_kmer(patt_list: list[str], loc_lis: np.ndarray) -> np.ndarray:
 def get_read_quality(read_loc: np.int64, loc_list: np.ndarray, patt_len: int) -> int:
     """Returns the "quality" of a read, i.e the number of localisation
     it is possible to retrieve between the 2 extreme localisations
-    (first and last indexes of loc_list)
-
+    (first and last indexes of loc_list). If there is more mismatched
+    pattern than max_mut, it returns the maximum number of mismatchs
+    possible.
 
     Args:
         read_loc (np.int64): localisation of the read to be checked
@@ -188,7 +189,15 @@ def get_read_quality(read_loc: np.int64, loc_list: np.ndarray, patt_len: int) ->
                 index_parsed = 0
             else:
                 index_parsed += 1
-    return nb_mismatch
+    return read_loc, nb_mismatch
+
+
+def chose_best_loc(read_info, max_mut):
+    conserved_loc = []
+    for read in read_info:
+        if read[1] <= max_mut:
+            conserved_loc.append(read[0])
+    return conserved_loc
 
 
 def verification_pattern(dna_seq: str, pattern: str, locs: np.ndarray):
@@ -251,9 +260,12 @@ if __name__ == "__main__":
     loc_read = link_kmer(kmer_fst_read, loc_kmer)
     print(f"Matching localisation(s) for the read: {loc_read}")
 
-    print(type(loc_read[0]))
     # Read quality
     read_qlty1 = get_read_quality(loc_read[0], loc_kmer, patt_len=10)
     read_qlty2 = get_read_quality(loc_read[1], loc_kmer, patt_len=10)
     print(f"Quality of first localisation: {read_qlty1}")  # 1
     print(f"Quality of second localisation: {read_qlty2}")  # 5
+
+    # Getting the best localisation
+    read_qlty = [read_qlty1, read_qlty2]
+    print(f"Best loc: {chose_best_loc(read_qlty, max_mut=1)}")
