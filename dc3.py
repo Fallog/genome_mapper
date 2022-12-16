@@ -78,7 +78,8 @@ def compute_dc3_variable(T, sorting_algorithm):
     r12 = make_triplet(T, p12)
     # print(r12)
     r12s = np.copy(r12)
-    index_list = np.argsort(r12s, kind=sorting_algorithm, order=("1", "2", "3"))
+    index_list = np.argsort(
+        r12s, kind=sorting_algorithm, order=("1", "2", "3"))
     index = np.take_along_axis(p12, index_list, axis=0)
 
     r12s.sort(kind=sorting_algorithm, order=("1", "2", "3"))
@@ -133,7 +134,8 @@ def reccursive_sort_s11(init_seq, sorting_algorithm, iter=0, print_var=False):
         # Index012 is corresponding of index des index d'avant
         return index012
     else:
-        p0 = np.arange(0, init_seq.size, 3)  # init_seq = T sans les 0 psq iter = 0
+        # init_seq = T sans les 0 psq iter = 0
+        p0 = np.arange(0, init_seq.size, 3)
         r0 = make_r0(p0, init_seq, index)
         res = step2(T, index, r0, p0)
         return res
@@ -226,7 +228,8 @@ def merging_r0_r12(T, index_r0, index_r12):
     Returns:
         array: index array updated for the next iteration
     """
-    dic_index12_i_v = {val: i for val, i in zip(index_r12, np.arange(index_r12.size))}
+    dic_index12_i_v = {val: i for val, i in zip(
+        index_r12, np.arange(index_r12.size))}
     # print(dic_index12_i_v)
     size12, size0 = index_r12.size, index_r0.size
     index_table_merged = np.empty(size12 + size0, dtype=int)
@@ -255,7 +258,7 @@ def merging_r0_r12(T, index_r0, index_r12):
 
 
 def dc3(seq: str, sorting_algorithm: str = "stable"):
-    T = tools.strToBase(seq)
+    T = tools.str_to_base(seq)
     # print(T)
     suffix_array = reccursive_sort_s11(T, sorting_algorithm)
     return suffix_array
