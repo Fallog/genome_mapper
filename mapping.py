@@ -4,25 +4,19 @@ from tqdm import tqdm
 from Chromosome import Chromosome
 
 
-def verification_pattern(dna_seq: str, pattern: str, locs: np.ndarray):
-    """Verifies the founded localisation of the pattern argument over
-    the dna_seq argument.
+def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
+    """Divide the given read argument into a list of k-mer,
+    smaller strings of size the k_len argument.
 
     Args:
-        dna_seq (str): big string made only with A, T, C and G character
-        pattern (str): shorter string made with the same letters
-        locs (ndarray): every founded localisation of pattern over
-            dna_seq
+        read (str): str made of the characters 'A', 'T', 'C' and 'G'
+        patt_len (int): size of the k-mer to be created from the read
+            sequence
+
+    Returns:
+        list[str]: list of all the k-mer created from the read
     """
-    if locs[0] == -1:
-        print("No localisation is found")
-    pattern_L = pattern.lower()  #
-    print(f"Kmer length: {len(pattern_L)}")
-    for i, loc in enumerate(locs):
-        print(f"{i:>3} loc: {loc}")
-        print(
-            f"{dna_seq[loc -10:loc]}--{dna_seq[loc:loc + len(pattern)]}--{dna_seq[loc + len(pattern) +1:loc + len(pattern) + 11]}"
-        )
+    return [read[i: i + patt_len] for i in range(0, len(read), patt_len)]
 
 
 def get_first_occ(rank_mat: dict[np.ndarray], base: str) -> int:
@@ -82,22 +76,69 @@ def string_search(read: str, chromo: Chromosome) -> np.ndarray:
             bottom = i_first_occ + i_rank_mat[bottom]
         if not (top <= bottom):
             return np.array([-1])
-    return np.sort(chromo.suffix_table[top : bottom + 1], axis=0, kind="mergesort")
+    return np.sort(chromo.suffix_table[top: bottom + 1], axis=0, kind="mergesort")
 
 
-def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
-    """Divide the given read argument into a list of k-mer,
-    smaller strings of size the k_len argument.
+def link_kmer(patt_list: list[str], loc_lis: np.ndarray) -> np.ndarray:
+    """Returns the reconstructed read and its localisation on a
+    chromosome.
+    Linkage of the 2 extreme kmers of kmerList (first and last) consists
+    in finding if the localisation of the last is equal to the
+    localisation of the first + N-1 times the length of a kmer, (N being
+    the number of kmer in kmerList).
 
     Args:
-        read (str): str made of the characters 'A', 'T', 'C' and 'G'
-        patt_len (int): size of the k-mer to be created from the read
-            sequence
+        kmerlist (list[str]): list of every kmer of a given read, output
+            of cut_read_to_kmer function
+        locaList (np.ndarray): sorted array of every localisation for each
+            kmer in kmerList, output of string_search function
 
     Returns:
-        list[str]: list of all the k-mer created from the read
+        ndarray: localisation of the read on a given chromosome,
+            np.empty(1) if no localisation is found
     """
-    return [read[i : i + patt_len] for i in range(0, len(read), patt_len)]
+    patt_nb = len(patt_list)
+    patt_len = len(patt_list[0])
+    # Every localisations of the first pattern
+    first_loc = loc_lis[0]
+    # Every localisation of the first pattern
+    last_loc = loc_lis[-1]
+    # Index to parse localisations of the first pattern
+    first_index = 0
+    # Index to parse localisations of the first pattern
+    last_index = 0
+    # Read is the concatenation of all the elements inside pattern list
+    read = "".join(patt_list)
+    # If first or last kmer have 0 localisation, return 0 localisation
+    # for the read
+    if len(last_loc) == 1 and last_loc[0] < 1:
+        # print("No kmer localisation")
+        return read, np.array([-1])
+    if len(first_loc) == 1 and first_loc[0]:
+        # print("No kmer localisation")
+        return read, np.array([-1])
+    loca_read = []
+    while first_index != len(first_loc):
+        if last_index == len(last_loc):
+            # print("Next first localisation")
+            first_index += 1
+            last_index = 0
+        else:
+            exp_loc = first_loc[first_index] + patt_len * (patt_nb - 1)
+            if exp_loc >= last_loc[last_index]:
+                if exp_loc == last_loc[last_index]:
+                    # print("Equal")
+                    loca_read.append(first_loc[first_index])
+                    first_index += 1
+                    last_index = 0
+                else:
+                    # print("Superior")
+                    last_index += 1
+            else:
+                # print("Inferior")
+                first_index += 1
+                last_index = 0
+    return np.array(loca_read)
 
 
 def get_read_quality(read_loc: np.int64, loc_list: np.ndarray, patt_len: int) -> int:
@@ -150,66 +191,25 @@ def get_read_quality(read_loc: np.int64, loc_list: np.ndarray, patt_len: int) ->
     return nb_mismatch
 
 
-def link_kmer_fast(patt_list: list[str], loc_lis: np.ndarray) -> np.ndarray:
-    """Returns the reconstructed read and its localisation on a
-    chromosome.
-    Linkage of the 2 extreme kmers of kmerList (first and last) consists
-    in finding if the localisation of the last is equal to the
-    localisation of the first + N-1 times the length of a kmer, (N being
-    the number of kmer in kmerList).
+def verification_pattern(dna_seq: str, pattern: str, locs: np.ndarray):
+    """Verifies the founded localisation of the pattern argument over
+    the dna_seq argument.
 
     Args:
-        kmerlist (list[str]): list of every kmer of a given read, output
-            of cut_read_to_kmer function
-        locaList (np.ndarray): sorted array of every localisation for each
-            kmer in kmerList, output of string_search function
-
-    Returns:
-        ndarray: localisation of the read on a given chromosome,
-            np.empty(1) if no localisation is found
+        dna_seq (str): big string made only with A, T, C and G character
+        pattern (str): shorter string made with the same letters
+        locs (ndarray): every founded localisation of pattern over
+            dna_seq
     """
-    patt_nb = len(patt_list)
-    patt_len = len(patt_list[0])
-    # Every localisations of the first pattern
-    first_loc = loc_lis[0]
-    # Every localisation of the first pattern
-    last_loc = loc_lis[-1]
-    # Index to parse localisations of the first pattern
-    first_index = 0
-    # Index to parse localisations of the first pattern
-    last_index = 0
-    # Read is the concatenation of all the elements inside pattern list
-    read = "".join(patt_list)
-    # If first or last kmer have 0 localisation, return 0 localisation
-    # for the read
-    if len(last_loc) == 1 and last_loc[0] < 1:
-        # print("No kmer localisation")
-        return read, np.array([-1])
-    if len(first_loc) == 1 and first_loc[0]:
-        # print("No kmer localisation")
-        return read, np.array([-1])
-    locaRead = []
-    while first_index != len(first_loc):
-        if last_index == len(last_loc):
-            # print("Next first localisation")
-            first_index += 1
-            last_index = 0
-        else:
-            exp_loc = first_loc[first_index] + patt_len * (patt_nb - 1)
-            if exp_loc >= last_loc[last_index]:
-                if exp_loc == last_loc[last_index]:
-                    # print("Equal")
-                    locaRead.append(first_loc[first_index])
-                    first_index += 1
-                    last_index = 0
-                else:
-                    # print("Superior")
-                    last_index += 1
-            else:
-                # print("Inferior")
-                first_index += 1
-                last_index = 0
-    return np.array(locaRead)
+    if locs[0] == -1:
+        print("No localisation is found")
+    pattern_L = pattern.lower()  #
+    print(f"Kmer length: {len(pattern_L)}")
+    for i, loc in enumerate(locs):
+        print(f"{i:>3} loc: {loc}")
+        print(
+            f"{dna_seq[loc -10:loc]}--{dna_seq[loc:loc + len(pattern)]}--{dna_seq[loc + len(pattern) +1:loc + len(pattern) + 11]}"
+        )
 
 
 if __name__ == "__main__":
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     print(f"Locs read: {loc_kmer}")
 
     # Read reconstruction
-    loc_read = link_kmer_fast(kmer_fst_read, loc_kmer)
+    loc_read = link_kmer(kmer_fst_read, loc_kmer)
     print(f"Matching localisation(s) for the read: {loc_read}")
 
     print(type(loc_read[0]))
