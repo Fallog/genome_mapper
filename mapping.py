@@ -86,19 +86,8 @@ def cut_read_to_kmer(read: str, kLen: int):
         list[str]: list of all the k-mer created from the read
     """
     readLen = len(read)  # performance
-    kmerList = [0] * (readLen // kLen)
-    readCnt = 0
-    kCnt = 0
-    while readCnt <= readLen - kLen:
-        kmerList[kCnt] = read[readCnt : readCnt + kLen]
-        readCnt += kLen
-        kCnt += 1
+    return [read[i : i + kLen] for i in range(0, readLen, kLen)]
 
-    # Adding remaining nucleotides in case of non divisible k_len
-    if readLen % kLen == 0:
-        return kmerList
-    else:
-        return kmerList + read[readCnt:]
 
 
 def link_kmer(kmerList, locaList):
@@ -343,5 +332,24 @@ if __name__ == "__main__":
     # qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
     # print(f"Type output link_kmer: {type(recoReadFst[1][0])}")
     # print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
+
+    bwtList = list(bwtChromo1)
+    # print(f"Sorted BWT list: {sorted(bwtList)[:100]}")
+
+    # cProfile.run("rankMat = bwt.create_rank_mat(bwtChromo1)")
+    rankMat = chromo1.rank_mat.item()
+    # print(f"Rank matrix of A: {rankMat['A'][260000:261000]}")
+
+    locs = []
+    for kmer in kmerFstRead:
+        locs.append(search_kmer_pos(bwtChromo1, rankMat, chromo1.suffix_table, kmer)[1])
+    print(f"Kmers localisation: {locs}")
+    verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
+    recoReadFst = link_kmer_fast(kmerFstRead, locs)
+    print(f"Reconstructed read: {recoReadFst}")
+    qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
+    qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
+    print(f"Type output link_kmer: {type(recoReadFst[1][0])}")
+    print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
     # print(f"Reconstructed read: {recoRead} Lenght read: {len(recoRead[0])}")
     # print(f"Actual read: {readTest:>7}")
