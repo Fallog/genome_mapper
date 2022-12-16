@@ -80,7 +80,7 @@ def string_search(
         else:
             bottom = get_first_occ(rank_mat, base) + rank_mat[base][bottom]
     if read == "":
-        return np.sort(suff_t[top: bottom + 1], axis=-1, kind="mergesort")
+        return np.sort(suff_t[top : bottom + 1], axis=0, kind="mergesort")
     else:
         return np.array([-1])
 
@@ -97,7 +97,7 @@ def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
     Returns:
         list[str]: list of all the k-mer created from the read
     """
-    return [read[i: i + patt_len] for i in range(0, len(read), patt_len)]
+    return [read[i : i + patt_len] for i in range(0, len(read), patt_len)]
 
 
 def get_read_quality(read_loc: np.int64, loc_list: np.ndarray, patt_len: int) -> int:
@@ -235,8 +235,7 @@ if __name__ == "__main__":
     suffix_t = chromo1.suffix_table
 
     # Localisations of the first kmer
-    locs = string_search(
-        bwt_chr1, kmer_fst_read[0], rank_mat, suffix_t)
+    locs = string_search(bwt_chr1, kmer_fst_read[0], rank_mat, suffix_t)
     print(f"Locs first kmer: {locs}")
     verification_pattern(chromo1.DNA, kmer_fst_read[0], locs)
 
