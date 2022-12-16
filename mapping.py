@@ -93,91 +93,7 @@ def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
     Returns:
         list[str]: list of all the k-mer created from the read
     """
-    readLen = len(read)  # Performance
-    return [read[i: i + patt_len] for i in range(0, readLen, patt_len)]
-
-
-def link_kmer(kmerList, locaList):
-    """_summary_
-
-    Args:
-        kmerList (list[str]): _description_
-        locaList (list[ndarray]): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    indFirst = 0  # index to parse the localisation of the first kmer
-    indLoca = 0  # index to parse the localisation of the following kmers
-    indKmer = 1  # index specifying on which following kmer we are
-    locaFirst = locaList[0]  # localisations list of the first kmer
-    locaNext = locaList[indKmer]  # localisations list of the following kmer
-    read = kmerList[0]
-    # bestRead = read
-    # bestLoca = locaFirst[indFirst]
-    readLen = len(kmerList)  # number of kmer in a read
-    kmerLen = len(kmerList[0])  # kmer have all the same size
-    linkedKmer = 0
-    while indKmer != readLen:
-        print(f"Length locaFirst: {len(locaFirst)} locaNext: {len(locaNext)}")
-        # If it reaches the last localisation of the first kmer
-        # it
-        if indFirst == len(locaFirst):
-            return read, locaFirst[indFirst] + 1
-        else:
-            # If the next kmer don't have any localisation
-            if len(locaNext) == 1 and locaNext[indLoca] < 1:
-                read += "-" * len(kmerList[0])
-                indKmer += 1
-            else:
-                # Si on arrive au bout des localisations, on passe à la
-                # localisation suivante du premier kmer en retournant à
-                # la première localisation du kmer suivant (le 1 donc)
-                if indLoca == len(locaNext):
-                    if linkedKmer == 0:
-                        print("No more kmer")
-                        indFirst += 1
-                        indKmer = 1
-                        indLoca = 0
-                        read = kmerList[0]
-                    else:
-                        indLoca += 1
-                        read += "-" * len(kmerList[0])
-                    linkedKmer = 0
-                else:
-                    print(f"Loca first kmer: {locaFirst[indFirst]}")
-                    print(f"Loca parsed kmer: {locaNext[indLoca]}")
-
-                    # Si les localisations se suivent, passer au kmer suivant
-                    # tout en revenant à sa première localisation
-                    print(
-                        f"indFirst: {indFirst} indKmer: {indKmer} indLoca: {indLoca}")
-                    if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
-                        print("Equal")
-                        read += kmerList[indKmer]
-                        linkedKmer += 1
-                        indKmer += 1
-                        indLoca = 0
-
-                    else:  # sinon regarder la localisation suivante du kmer actuel
-                        if locaFirst[indFirst] + kmerLen * indKmer > locaNext[indLoca]:
-                            print("Superior")
-                            indLoca += 1
-                        else:
-                            print("Inferior")
-                            indFirst += 1
-                            indKmer = 1
-                            indLoca = 0
-                            read = kmerList[0]
-
-        # Update if needed the returned read
-        # if len(read) > len(bestRead):
-        #     bestRead = read
-        #     bestLoca = locaFirst[indFirst]
-        if len(read) == kmerLen * len(kmerList):
-            # First base of the genome is set to base 1 and not 0
-            return read, locaFirst[indFirst] + 1
-        locaNext = locaList[indKmer]
+    return [read[i: i + patt_len] for i in range(0, len(read), patt_len)]
 
 
 def get_read_quality(first_loc: np.ndarray, loc_list: np.ndarray, patt_len: str):
@@ -198,39 +114,39 @@ def get_read_quality(first_loc: np.ndarray, loc_list: np.ndarray, patt_len: str)
         int: number of mismatched patterns in between first and last
             patterns in the patterns list 
     """
-    targetLoca = [first_loc + (i * patt_len) for i in range(1, patt_len)]
+    targ_loc = [first_loc + (i * patt_len) for i in range(1, patt_len)]
     # print(f"Locs we are looking for: {targetLoca}")
     # Counter giving the number of unplaced kmer between the extreme reads
-    mismatchKmer = 0
-    indKmer = 1  # Index specifying on which kmer we are
-    indParsed = 0  # Index to parse the localisations of inside locaList
-    indTarg = 0  # Index to parse targetLoca
-    while indKmer < patt_len - 1:
-        locaParsed = loc_list[indKmer]
+    nb_mismatch = 0
+    index_patt = 1  # Index specifying on which kmer we are
+    index_parsed = 0  # Index to parse the localisations of inside locaList
+    index_targ = 0  # Index to parse targetLoca
+    while index_patt < patt_len - 1:
+        locaParsed = loc_list[index_patt]
         # print(f"Locations parsed: {locaParsed} len: {len(locaParsed)}")
         # If it reaches the end of actual localisation list
         # before returning anything go to next kmer but count one
         # unplaced kmer
-        if indParsed == len(locaParsed):
+        if index_parsed == len(locaParsed):
             # print(f"indParsed: {indParsed}")
-            indKmer += 1
-            indTarg += 1
-            indParsed = 0
-            mismatchKmer += 1
+            index_patt += 1
+            index_targ += 1
+            index_parsed = 0
+            nb_mismatch += 1
         else:
             # If the positions match then go to next kmer and next target
             # localisation
-            if locaParsed[indParsed] == targetLoca[indTarg]:
+            if locaParsed[index_parsed] == targ_loc[index_targ]:
                 # print("Found !")
-                indKmer += 1
-                indTarg += 1
-                indParsed = 0
+                index_patt += 1
+                index_targ += 1
+                index_parsed = 0
             else:
-                indParsed += 1
-    return mismatchKmer
+                index_parsed += 1
+    return nb_mismatch
 
 
-def link_kmer_fast(kmerList, locaList):
+def link_kmer_fast(patt_list, loc_lis):
     """Returns the reconstructed read and its localisation on a
     chromosome.
     Linkage of the 2 extreme kmers of kmerList (first and last) consists
@@ -249,42 +165,42 @@ def link_kmer_fast(kmerList, locaList):
         ndarray: localisation of the read on a given chromosome,
             np.empty(1) if no localisation is found
     """
-    kmerNb = len(kmerList)
-    kmerLen = len(kmerList[0])
-    fstLoca = locaList[0]
-    lstLoca = locaList[-1]
-    fstInd = 0
-    lstInd = 0
-    read = "".join(kmerList)
+    patt_nb = len(patt_list)
+    patt_len = len(patt_list[0])
+    first_loc = loc_lis[0]
+    last_loc = loc_lis[-1]
+    first_index = 0
+    last_index = 0
+    read = "".join(patt_list)
     # If first or last kmer have 0 localisation, return 0 localisation
     # for the read
-    if len(lstLoca) == 1 and lstLoca[0] < 1:
+    if len(last_loc) == 1 and last_loc[0] < 1:
         # print("No kmer localisation")
         return read, np.empty(1)
-    if len(fstLoca) == 1 and fstLoca[0]:
+    if len(first_loc) == 1 and first_loc[0]:
         # print("No kmer localisation")
         return read, np.empty(1)
     locaRead = []
-    while fstInd != len(fstLoca):
-        if lstInd == len(lstLoca):
+    while first_index != len(first_loc):
+        if last_index == len(last_loc):
             # print("Next first localisation")
-            fstInd += 1
-            lstInd = 0
+            first_index += 1
+            last_index = 0
         else:
-            expLoca = fstLoca[fstInd] + kmerLen * (kmerNb - 1)
-            if expLoca >= lstLoca[lstInd]:
-                if expLoca == lstLoca[lstInd]:
+            expLoca = first_loc[first_index] + patt_len * (patt_nb - 1)
+            if expLoca >= last_loc[last_index]:
+                if expLoca == last_loc[last_index]:
                     # print("Equal")
-                    locaRead.append(fstLoca[fstInd])
-                    fstInd += 1
-                    lstInd = 0
+                    locaRead.append(first_loc[first_index])
+                    first_index += 1
+                    last_index = 0
                 else:
                     # print("Superior")
-                    lstInd += 1
+                    last_index += 1
             else:
                 # wprint("Inferior")
-                fstInd += 1
-                lstInd = 0
+                first_index += 1
+                last_index = 0
     return read, np.array(locaRead)
 
 

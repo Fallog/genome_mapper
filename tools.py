@@ -10,7 +10,7 @@ def str_to_base(dna_seq: str) -> np.ndarray:
     Returns:
         np.ndarray: array resulting of the transformation
     """
-    dna_seq = dna_seq.upper()
+    dna_seq = dna_seq.upper()  # DNA sequence can contains lowercase nucleotides
     res_array = np.empty(len(dna_seq), dtype=int)
     for i in range(len(dna_seq)):
         if dna_seq[i] == "$":
@@ -37,21 +37,21 @@ def inverse_sequence(dna_seq: str) -> str:
     Returns:
         str: complementary strand of dnaSeq, built backwards
     """
-    seqLen = len(dna_seq)  # Performance
-    dnaSeqInv = [0] * seqLen  # Performance
+    seq_len = len(dna_seq)  # Performance
+    inv_dna = [0] * seq_len  # Performance
 
-    for i in range(seqLen):
+    for i in range(seq_len):
         base = dna_seq[i].capitalize()
         # dnaSeqInv is built backwards because it the inversed of dnaSeq
         if base == "A":
-            dnaSeqInv[-(i + 1)] = "T"
+            inv_dna[-(i + 1)] = "T"
         elif base == "T":
-            dnaSeqInv[-(i + 1)] = "A"
+            inv_dna[-(i + 1)] = "A"
         elif base == "C":
-            dnaSeqInv[-(i + 1)] = "G"
+            inv_dna[-(i + 1)] = "G"
         else:
-            dnaSeqInv[-(i + 1)] = "C"
-    return "".join(dnaSeqInv)  # Recreate a string
+            inv_dna[-(i + 1)] = "C"
+    return "".join(inv_dna)  # Recreate a string
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ class Chromosome:
         self.bwt_path = f"RESULTS/bwt_result_{file_name}.txt"
         self.rank_mat_path = f"RESULTS/rank_mat_result_{file_name}.npy"
         self.suffix_table = None
-        self.bwt = None
+        self.bwt = None  # TODO Remove $ from bwt
         self.rank_mat = None
         if os.path.isfile(self.dc3_path):
             self.import_dc3_result()
@@ -151,10 +151,12 @@ class Chromosome:
         """
         if os.path.isfile(self.rank_mat_path):
             if ret:
-                self.rank_mat = np.load(self.rank_mat_path, allow_pickle=True).item()
+                self.rank_mat = np.load(
+                    self.rank_mat_path, allow_pickle=True).item()
                 return self.rank_mat
             else:
-                self.rank_mat = np.load(self.rank_mat_path, allow_pickle=True).item()
+                self.rank_mat = np.load(
+                    self.rank_mat_path, allow_pickle=True).item()
         else:
             print(f"No file at the path {self.rank_mat_path}.")
 
