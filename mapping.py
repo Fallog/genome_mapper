@@ -49,9 +49,7 @@ def get_first_occ(rank_mat: dict[np.ndarray], base: str) -> int:
         return rank_mat["A"][-1] + rank_mat["C"][-1] + rank_mat["G"][-1] + 1
 
 
-def string_search(
-    bwt: str, read: str, rank_mat: dict[np.ndarray], suff_t: np.ndarray
-) -> np.ndarray:
+def string_search(read: str, chromo: Chromosome) -> np.ndarray:
     """Returns all the localisation of read argument over the DNA
     sequence that gave the bwt argument. The rank_mat is used to fasten
     the search and the suff_t argument gives the actual localisation.
@@ -68,21 +66,23 @@ def string_search(
         np.ndarray: array of the localisations of read over the DNA
     """
     top = 0
-    bottom = len(bwt) - 1
-    while top <= bottom and read != "":
-        base = read[-1]
-        read = read[: len(read) - 1]
-        top = get_first_occ(rank_mat, base) + rank_mat[base][top]
+    bottom = chromo.length - 1
+    for base in read[
+        ::-1
+    ]:  # Do ... while, because have to check after the iteration if its good
+        i_first_occ = chromo.first_occ[base]
+        i_rank_mat = chromo.rank_mat[base]
+        read = read[:-1]
+        top = i_first_occ + i_rank_mat[top]
         if top < bottom:
             bottom = (
-                get_first_occ(rank_mat, base) + rank_mat[base][bottom + 1] - 1
+                i_first_occ + i_rank_mat[bottom + 1] - 1
             )  # Because it will count 2 times the first
         else:
-            bottom = get_first_occ(rank_mat, base) + rank_mat[base][bottom]
-    if read == "":
-        return np.sort(suff_t[top: bottom + 1], axis=-1, kind="mergesort")
-    else:
-        return np.array([-1])
+            bottom = i_first_occ + i_rank_mat[bottom]
+        if not (top <= bottom):
+            return np.array([-1])
+    return np.sort(chromo.suffix_table[top : bottom + 1], axis=0, kind="mergesort")
 
 
 def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
@@ -97,7 +97,7 @@ def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
     Returns:
         list[str]: list of all the k-mer created from the read
     """
-    return [read[i: i + patt_len] for i in range(0, len(read), patt_len)]
+    return [read[i : i + patt_len] for i in range(0, len(read), patt_len)]
 
 
 def get_read_quality(read_loc: np.int64, loc_list: np.ndarray, patt_len: int) -> int:
@@ -231,19 +231,20 @@ if __name__ == "__main__":
 
     rank_mat = chromo1.rank_mat
     # print(f"First occ of C {get_first_occ(rank_mat, 'C')}")  # OK
-
+    chromo1.compute_first_occurency()
+    print(chromo1.first_occ)
     suffix_t = chromo1.suffix_table
 
     # Localisations of the first kmer
-    locs = string_search(
-        bwt_chr1, kmer_fst_read[0], rank_mat, suffix_t)
+    locs = string_search(kmer_fst_read[0], chromo1)
     print(f"Locs first kmer: {locs}")
-    verification_pattern(chromo1.DNA, kmer_fst_read[0], locs)
+    verification_pattern(chromo1.DNA_dol, kmer_fst_read[0], locs)
 
     # Localisation of all the kmers
     loc_kmer = []
     for kmer in kmer_fst_read:
-        loc_kmer.append(string_search(bwt_chr1, kmer, rank_mat, suffix_t))
+        locs = string_search(kmer, chromo1)
+        loc_kmer.append(locs)
     print(f"Locs read: {loc_kmer}")
 
     # Read reconstruction
