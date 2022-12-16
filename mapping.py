@@ -37,17 +37,21 @@ def get_first_occ(rank_mat: dict[np.ndarray], base: str) -> int:
     Returns:
         int: index of the first appearance of base argument
     """
-    if base == "A":
+    if base == "$":
         return 0
+    elif base == "A":
+        return 1
     elif base == "C":
-        return rank_mat["A"][-1]
+        return rank_mat["A"][-1] + 1
     elif base == "G":
-        return rank_mat["A"][-1] + rank_mat["C"][-1]
+        return rank_mat["A"][-1] + rank_mat["C"][-1] + 1
     else:
-        return rank_mat["A"][-1] + rank_mat["C"][-1] + rank_mat["G"][-1]
+        return rank_mat["A"][-1] + rank_mat["C"][-1] + rank_mat["G"][-1] + 1
 
 
-def string_search(bwt: str, read: str, rank_mat: dict[np.ndarray], suff_t: np.ndarray) -> np.ndarray:
+def string_search(
+    bwt: str, read: str, rank_mat: dict[np.ndarray], suff_t: np.ndarray
+) -> np.ndarray:
     """Returns all the localisation of read argument over the DNA
     sequence that gave the bwt argument. The rank_mat is used to fasten
     the search and the suff_t argument gives the actual localisation.
@@ -76,7 +80,7 @@ def string_search(bwt: str, read: str, rank_mat: dict[np.ndarray], suff_t: np.nd
         else:
             bottom = get_first_occ(rank_mat, base) + rank_mat[base][bottom]
     if read == "":
-        return suff_t[top: bottom + 1]
+        return suff_t[top : bottom + 1]
     else:
         return np.array([-1])
 
@@ -93,7 +97,7 @@ def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
     Returns:
         list[str]: list of all the k-mer created from the read
     """
-    return [read[i: i + patt_len] for i in range(0, len(read), patt_len)]
+    return [read[i : i + patt_len] for i in range(0, len(read), patt_len)]
 
 
 def get_read_quality(first_loc: np.ndarray, loc_list: np.ndarray, patt_len: str):
@@ -248,5 +252,4 @@ if __name__ == "__main__":
     # print(f"First occ of C {get_first_occ(rankMat, 'C')}")  # OK
     # print(f"Rank matrix of C: {rankMat['C'][:100]}")
 
-    locs = string_search(
-        bwtChromo1, kmerFstRead[0], rankMat, chromo1.suffix_table)
+    locs = string_search(bwtChromo1, kmerFstRead[0], rankMat, chromo1.suffix_table)
