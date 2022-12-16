@@ -80,7 +80,7 @@ def string_search(
         else:
             bottom = get_first_occ(rank_mat, base) + rank_mat[base][bottom]
     if read == "":
-        return suff_t[top : bottom + 1]
+        return np.sort(suff_t[top: bottom + 1], axis=-1, kind="mergesort")
     else:
         return np.array([-1])
 
@@ -97,33 +97,33 @@ def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
     Returns:
         list[str]: list of all the k-mer created from the read
     """
-    return [read[i : i + patt_len] for i in range(0, len(read), patt_len)]
+    return [read[i: i + patt_len] for i in range(0, len(read), patt_len)]
 
 
-def get_read_quality(first_loc: np.ndarray, loc_list: np.ndarray, patt_len: str):
+def get_read_quality(read_loc: np.int64, loc_list: np.ndarray, patt_len: int) -> int:
     """Returns the "quality" of a read, i.e the number of localisation
     it is possible to retrieve between the 2 extreme localisations
     (first and last indexes of loc_list)
 
 
     Args:
-        first_loc (np.ndarray): array of every localisations of the
-            first pattern
+        read_loc (np.int64): localisation of the read to be checked
         loc_list (np.ndarray): array of every localisation for each
             pattern of a given read
-        patt_len (np.ndarray): length of the pattern a read is divided
+        patt_len (int): length of the pattern a read is divided
             into
 
     Returns:
         int: number of mismatched patterns in between first and last
             patterns in the patterns list
     """
-    targ_loc = [first_loc + (i * patt_len) for i in range(1, patt_len)]
-    # print(f"Locs we are looking for: {targetLoca}")
+    # Localisation where the kmer are supposed to be found
+    targ_loc = [read_loc + (i * patt_len) for i in range(1, patt_len)]
+
     # Counter giving the number of unplaced kmer between the extreme reads
     nb_mismatch = 0
     index_patt = 1  # Index specifying on which kmer we are
-    index_parsed = 0  # Index to parse the localisations of inside locaList
+    index_parsed = 0  # Index to parse the localisations of inside loc_list
     index_targ = 0  # Index to parse targetLoca
     while index_patt < patt_len - 1:
         locaParsed = loc_list[index_patt]
@@ -150,7 +150,7 @@ def get_read_quality(first_loc: np.ndarray, loc_list: np.ndarray, patt_len: str)
     return nb_mismatch
 
 
-def link_kmer_fast(patt_list, loc_lis):
+def link_kmer_fast(patt_list: list[str], loc_lis: np.ndarray) -> np.ndarray:
     """Returns the reconstructed read and its localisation on a
     chromosome.
     Linkage of the 2 extreme kmers of kmerList (first and last) consists
@@ -161,29 +161,33 @@ def link_kmer_fast(patt_list, loc_lis):
     Args:
         kmerlist (list[str]): list of every kmer of a given read, output
             of cut_read_to_kmer function
-        locaList (ndarray): array of every localisation for each kmer
-            in kmerList, output of search_kmer_pos
+        locaList (np.ndarray): sorted array of every localisation for each
+            kmer in kmerList, output of string_search function
 
     Returns:
-        str: read built from all the kmer in kmerList
         ndarray: localisation of the read on a given chromosome,
             np.empty(1) if no localisation is found
     """
     patt_nb = len(patt_list)
     patt_len = len(patt_list[0])
+    # Every localisations of the first pattern
     first_loc = loc_lis[0]
+    # Every localisation of the first pattern
     last_loc = loc_lis[-1]
+    # Index to parse localisations of the first pattern
     first_index = 0
+    # Index to parse localisations of the first pattern
     last_index = 0
+    # Read is the concatenation of all the elements inside pattern list
     read = "".join(patt_list)
     # If first or last kmer have 0 localisation, return 0 localisation
     # for the read
     if len(last_loc) == 1 and last_loc[0] < 1:
         # print("No kmer localisation")
-        return read, np.empty(1)
+        return read, np.array([-1])
     if len(first_loc) == 1 and first_loc[0]:
         # print("No kmer localisation")
-        return read, np.empty(1)
+        return read, np.array([-1])
     locaRead = []
     while first_index != len(first_loc):
         if last_index == len(last_loc):
@@ -191,9 +195,9 @@ def link_kmer_fast(patt_list, loc_lis):
             first_index += 1
             last_index = 0
         else:
-            expLoca = first_loc[first_index] + patt_len * (patt_nb - 1)
-            if expLoca >= last_loc[last_index]:
-                if expLoca == last_loc[last_index]:
+            exp_loc = first_loc[first_index] + patt_len * (patt_nb - 1)
+            if exp_loc >= last_loc[last_index]:
+                if exp_loc == last_loc[last_index]:
                     # print("Equal")
                     locaRead.append(first_loc[first_index])
                     first_index += 1
@@ -202,14 +206,10 @@ def link_kmer_fast(patt_list, loc_lis):
                     # print("Superior")
                     last_index += 1
             else:
-                # wprint("Inferior")
+                # print("Inferior")
                 first_index += 1
                 last_index = 0
-    return read, np.array(locaRead)
-
-
-def mapping(chromo, read):
-    pass
+    return np.array(locaRead)
 
 
 if __name__ == "__main__":
@@ -220,36 +220,39 @@ if __name__ == "__main__":
             pbar.update(1)
     chromo1 = Chromosome("P_fal_chromosome_1", chromo[0], 1)
 
-    # AAACCCTGAA$
-    # seq = "ATAATA$"
-    # suffixT = dc3(seq=seq)
-    # print(f"suffix array: {suffixT} ST[1:4]: {suffixT[1:4]}")
-    # bwtSeq = bwt.bwt(seq, suffixT)
-    # print(f"bwt: {bwtSeq}")
-    # rkMtSeq = bwt.create_rank_mat(bwtSeq)
-    # print(f"Sorted bwt: {sorted(list(bwtSeq))}")
-    # locs = string_search(bwtSeq, "AT", rkMtSeq, suffixT)
-    # print(locs, "tata")
-    # verification_pattern(seq, "AT", locs)
-
-    # reads = []
-    # with tqdm(total=1500000, desc="Reads importation") as pbar:
-    #     for record in tqdm(SeqIO.parse("SEQUENCES/P_fal_reads.fq", format="fastq")):
-    #         reads.append((record.seq, record.id))
-    #         pbar.update(1)
-    # # First read of mapping_P_fal.sam file
-    # readTest = str(reads[100000 - 21515][0])
-    # print(f"First read: {readTest} type: {type(readTest)}")
-    readTest = "AAACCCTGAACCCTAAACCCTGAACCCTAAACCCTAAACCCTGAACCCTAAACCCTAAACCCTGAACCCTAAACCCTGAAACCTAAAACCTGAACCCTAA"
-    kmerFstRead = cut_read_to_kmer(readTest, 10)
-    print(f"Kmers: {kmerFstRead}")
+    # First read of mapping_P_fal.sam file
+    test_read = "AAACCCTGAACCCTAAACCCTGAACCCTAAACCCTAAACCCTGAACCCTAAACCCTAAACCCTGAACCCTAAACCCTGAAACCTAAAACCTGAACCCTAA"
+    kmer_fst_read = cut_read_to_kmer(test_read, 10)
+    print(f"Kmers: {kmer_fst_read}")
 
     # testing for the first chromosome
-    bwtChromo1 = chromo1.bwt
-    # print(f"bwt: {bwtChromo1[:10000]}, type: {type(bwtChromo1)}")
+    bwt_chr1 = chromo1.bwt
+    # print(f"bwt: {bwt_chr1[:10000]}, type: {type(bwt_chr1)}")
 
-    rankMat = chromo1.rank_mat
-    # print(f"First occ of C {get_first_occ(rankMat, 'C')}")  # OK
-    # print(f"Rank matrix of C: {rankMat['C'][:100]}")
+    rank_mat = chromo1.rank_mat
+    # print(f"First occ of C {get_first_occ(rank_mat, 'C')}")  # OK
 
-    locs = string_search(bwtChromo1, kmerFstRead[0], rankMat, chromo1.suffix_table)
+    suffix_t = chromo1.suffix_table
+
+    # Localisations of the first kmer
+    locs = string_search(
+        bwt_chr1, kmer_fst_read[0], rank_mat, suffix_t)
+    print(f"Locs first kmer: {locs}")
+    verification_pattern(chromo1.DNA, kmer_fst_read[0], locs)
+
+    # Localisation of all the kmers
+    loc_kmer = []
+    for kmer in kmer_fst_read:
+        loc_kmer.append(string_search(bwt_chr1, kmer, rank_mat, suffix_t))
+    print(f"Locs read: {loc_kmer}")
+
+    # Read reconstruction
+    loc_read = link_kmer_fast(kmer_fst_read, loc_kmer)
+    print(f"Matching localisation(s) for the read: {loc_read}")
+
+    print(type(loc_read[0]))
+    # Read quality
+    read_qlty1 = get_read_quality(loc_read[0], loc_kmer, patt_len=10)
+    read_qlty2 = get_read_quality(loc_read[1], loc_kmer, patt_len=10)
+    print(f"Quality of first localisation: {read_qlty1}")  # 1
+    print(f"Quality of second localisation: {read_qlty2}")  # 5
