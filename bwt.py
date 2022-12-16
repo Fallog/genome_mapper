@@ -1,4 +1,5 @@
 import numpy as np
+
 # from Chromosome import Chromosome
 # from Bio import SeqIO
 
@@ -48,20 +49,20 @@ def create_rank_mat(bwtDna):
     alphabet = ["A", "T", "C", "G", "$"]
     lenDna = len(bwtDna)
     rkMat = {
-        "A": np.zeros(lenDna, dtype=np.int32),
-        "T": np.zeros(lenDna, dtype=np.int32),
-        "C": np.zeros(lenDna, dtype=np.int32),
-        "G": np.zeros(lenDna, dtype=np.int32),
-        "$": np.zeros(lenDna, dtype=np.int32),
+        "A": np.zeros(lenDna + 1, dtype=np.int32),
+        "T": np.zeros(lenDna + 1, dtype=np.int32),
+        "C": np.zeros(lenDna + 1, dtype=np.int32),
+        "G": np.zeros(lenDna + 1, dtype=np.int32),
+        "$": np.zeros(lenDna + 1, dtype=np.int32),
     }
-    for i, char in enumerate(bwtDna):
+    for i, char in enumerate("o" + bwtDna):
         if i == 0:
             for other_letter in alphabet:
                 rkMat[other_letter][i] = 0
         else:
             for other_letter in alphabet:
                 rkMat[other_letter][i] = rkMat[other_letter][i - 1]
-        rkMat[char][i] += 1
+            rkMat[char][i] += 1
     return rkMat
 
 

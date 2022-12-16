@@ -19,14 +19,11 @@ def verification_pattern(chromo, kmer, locs):
     """
     kmerL = kmer.lower()
     print(f"Kmer length: {len(kmerL)}")
-    i = 1
-    for loc in locs:
-
+    for i, loc in enumerate(locs):
         print(f"{i:>3} loc: {loc}")
         print(
             f"{chromo[loc -10:loc]}--{chromo[loc:loc + len(kmer)]}--{chromo[loc + len(kmer) +1:loc + len(kmer) + 11]}"
         )
-        i += 1
 
 
 def get_first_occ(rankMat, base):
@@ -38,77 +35,42 @@ def get_first_occ(rankMat, base):
     Returns:
         int: _description_
     """
-    if base == "A":
+    if base == "$":
         return 0
+    if base == "A":
+        return 1
     elif base == "C":
-        return rankMat["A"][-1]
+        return rankMat["A"][-1] + 1
     elif base == "G":
-        return rankMat["A"][-1] + rankMat["C"][-1]
+        return rankMat["A"][-1] + rankMat["C"][-1] + 1
     else:
-        return rankMat["A"][-1] + rankMat["C"][-1] + rankMat["G"][-1]
+        return rankMat["A"][-1] + rankMat["C"][-1] + rankMat["G"][-1] + 1
 
 
-def search_kmer_pos(bwtDna, rankMat, suffixTab, kmer):
-    """Search a kmer in a Burrows Wheeler tranformed chromosome.
-    Returns the kmer and it's position(s) in the genome. If the kmer is
-    absent, it returns the kmer alone.
-
-    Args:
-        bwtDna (str): the BWT of a string made only with A, T, C, G
-            and a $
-        rankMat (dict): contains 5 keys: A, T, C, G and $, each key is
-            mapped with the rank table in the dnaSeq of the associated
-            character
-        suffixTab (ndarray): sorted array of all the suffixes
-            used to built bwtDna
-        kmer (str): nucleotides pattern to search in the genome
-
-    Return:
-        str: kmer argument
-        ndarray: every localisation where kmer can be read. If no
-        localisation is found, it is an "empty" ndarray -> np.empty(1)
-    """
-    lenBwt = len(bwtDna)
-    # print(f"Sorted BWT: {bwtSort}")
-    firstBase = bwtDna[0]
-    # print(f"First letter: {firstBase}")
-    bottom = 0  # Low boundary of the kmer search
-    top = lenBwt - 1  # High boundary of the kmer search
-    i = len(kmer) - 1  # Stay in the kmer boundaries
-    print(f"first bottom: {bottom},  first top: {top}")
-    nbOccur = 1
-    while nbOccur > 0 and i >= 0:
-        X = kmer[i]
-        print(f"i: {i}, X: {X}")
-        # Index of the first occurence of letter X in the rank matrix
-        firstOcc = get_first_occ(rankMat, X)  # $ is not taken into account
-        print(f"First apparition of {X} in sorted bwt: {firstOcc}")
-        # First base of bwtDna has a first rank equal to 1 but still needs
-        # to be taken as a new apparition of the base -> we decrease the range
-        # of one if the parsed rank of the parsed base is the first one
-        if bottom == 0 and X == firstBase:
-            bottom = firstOcc + rankMat[X][bottom]  # - 1
+def string_search(bwt_, read, rank_mat, st):
+    top = 0
+    bottom = len(bwt_) - 1
+    while top <= bottom and read != "":
+        base = read[-1]
+        read = read[: len(read) - 1]
+        top = get_first_occ(rank_mat, base) + rank_mat[base][top]
+        # print("top : ", top)
+        # print(get_first_occ(rank_mat, base))
+        # print(rank_mat[base][bottom])
+        if top < bottom:
+            bottom = (
+                get_first_occ(rank_mat, base) + rank_mat[base][bottom + 1] - 1
+            )  # Because it will count 2times the first
         else:
-            bottom = firstOcc + rankMat[X][bottom]
-        # bottom = firstOcc + rankMat[X][bottom]
-        top = firstOcc + rankMat[X][top]
-        print(f"bottom: {bottom}, top: {top}")
-        nbOccur = top - bottom  # Quantity of elements between 2 indexes
-        print(f"Number of locs: {nbOccur}\n")
-
-        if nbOccur == 0:
-            # print("Kmer not found !")
-            return kmer, np.empty(1)
-        print(f"loca: {suffixTab[bottom:top + 1]}")
-        i -= 1
-        # True if the entire pattern is crossed
-        if i == -1:
-            # Positions of the kmer in the chromosome computed only when
-            # the kmer totally localised to save time
-            locs = suffixTab[bottom:top + 1]  # top boundary is included
-            return kmer, np.sort(locs, kind="mergesort")
-
-    return kmer
+            bottom = get_first_occ(rank_mat, base) + rank_mat[base][bottom]
+        # print("bottom : ", bottom)
+        # print(top - bottom, "wsh")
+        # print(read)
+    if read == "":
+        # print(" Find !")
+        return st[top : bottom + 1]
+    else:
+        return np.empty(1)
 
 
 def cut_read_to_kmer(read: str, kLen: int):
@@ -128,7 +90,7 @@ def cut_read_to_kmer(read: str, kLen: int):
     readCnt = 0
     kCnt = 0
     while readCnt <= readLen - kLen:
-        kmerList[kCnt] = (read[readCnt:readCnt + kLen])
+        kmerList[kCnt] = read[readCnt : readCnt + kLen]
         readCnt += kLen
         kCnt += 1
 
@@ -192,8 +154,7 @@ def link_kmer(kmerList, locaList):
 
                     # Si les localisations se suivent, passer au kmer suivant
                     # tout en revenant à sa première localisation
-                    print(
-                        f"indFirst: {indFirst} indKmer: {indKmer} indLoca: {indLoca}")
+                    print(f"indFirst: {indFirst} indKmer: {indKmer} indLoca: {indLoca}")
                     if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
                         print("Equal")
                         read += kmerList[indKmer]
@@ -339,14 +300,16 @@ if __name__ == "__main__":
     chromo1 = Chromosome("P_fal_chromosome_1", chromo[0], 1)
 
     # AAACCCTGAA$
-    seq = "ATAATA$"
-    suffixT = dc3(seq=seq)
-    print(f"suffix array: {suffixT} ST[1:4]: {suffixT[1:4]}")
-    bwtSeq = bwt.bwt(seq, suffixT)
-    print(f"bwt: {bwtSeq}")
-    rkMtSeq = bwt.create_rank_mat(bwtSeq)
-    print(f"Sorted bwt: {sorted(list(bwtSeq))}")
-    print(f"Loca: {search_kmer_pos(bwtSeq, rkMtSeq, suffixT, 'AT')}")
+    # seq = "ATAATA$"
+    # suffixT = dc3(seq=seq)
+    # print(f"suffix array: {suffixT} ST[1:4]: {suffixT[1:4]}")
+    # bwtSeq = bwt.bwt(seq, suffixT)
+    # print(f"bwt: {bwtSeq}")
+    # rkMtSeq = bwt.create_rank_mat(bwtSeq)
+    # print(f"Sorted bwt: {sorted(list(bwtSeq))}")
+    # locs = string_search(bwtSeq, "AT", rkMtSeq, suffixT)
+    # print(locs, "tata")
+    # verification_pattern(seq, "AT", locs)
 
     # reads = []
     # with tqdm(total=1500000, desc="Reads importation") as pbar:
@@ -368,8 +331,7 @@ if __name__ == "__main__":
     # print(f"First occ of C {get_first_occ(rankMat, 'C')}")  # OK
     # print(f"Rank matrix of C: {rankMat['C'][:100]}")
 
-    # locs = search_kmer_pos(bwtChromo1, rankMat,
-    #                        chromo1.suffix_table, kmerFstRead[0])[1]
+    locs = string_search(bwtChromo1, kmerFstRead[0], rankMat, chromo1.suffix_table)
     # for kmer in kmerFstRead:
     #     locs.append(search_kmer_pos(bwtChromo1, rankMat,
     #                 chromo1.suffix_table, kmer)[1])
