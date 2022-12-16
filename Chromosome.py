@@ -22,12 +22,14 @@ class Chromosome:
         self.suffix_table = None
         self.bwt = None  # TODO Remove $ from bwt
         self.rank_mat = None
+        self.first_occ = {"$": 0, "A": 0, "C": 0, "G": 0, "T": 0}
         if os.path.isfile(self.dc3_path):
             self.import_dc3_result()
         if os.path.isfile(self.bwt_path):
             self.import_bwt_result()
         if os.path.isfile(self.rank_mat_path):
             self.import_rank_mat_result()
+            self.compute_first_occurency()
 
     def export_dc3_result(self, suffix_table, overwrite="y") -> None:
         """Create a .npy file contening our dc3 results
@@ -151,14 +153,19 @@ class Chromosome:
         """
         if os.path.isfile(self.rank_mat_path):
             if ret:
-                self.rank_mat = np.load(
-                    self.rank_mat_path, allow_pickle=True).item()
+                self.rank_mat = np.load(self.rank_mat_path, allow_pickle=True).item()
                 return self.rank_mat
             else:
-                self.rank_mat = np.load(
-                    self.rank_mat_path, allow_pickle=True).item()
+                self.rank_mat = np.load(self.rank_mat_path, allow_pickle=True).item()
         else:
             print(f"No file at the path {self.rank_mat_path}.")
+
+    def compute_first_occurency(self):
+        self.first_occ["$"] = 0
+        self.first_occ["A"] = self.rank_mat["$"][-1]
+        self.first_occ["C"] = self.rank_mat["A"][-1] + self.first_occ["A"]
+        self.first_occ["G"] = self.rank_mat["C"][-1] + self.first_occ["C"]
+        self.first_occ["T"] = self.rank_mat["G"][-1] + self.first_occ["G"]
 
 
 if __name__ == "__main__":
