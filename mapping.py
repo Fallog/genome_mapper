@@ -61,7 +61,7 @@ def string_search(bwt: str, read: str, rank_mat: dict[np.ndarray], suff_t: np.nd
             sequence used to build bwt
 
     Returns:
-        np.ndarray: array of the localisations of read over the DNA 
+        np.ndarray: array of the localisations of read over the DNA
     """
     top = 0
     bottom = len(bwt) - 1
@@ -112,7 +112,7 @@ def get_read_quality(first_loc: np.ndarray, loc_list: np.ndarray, patt_len: str)
 
     Returns:
         int: number of mismatched patterns in between first and last
-            patterns in the patterns list 
+            patterns in the patterns list
     """
     targ_loc = [first_loc + (i * patt_len) for i in range(1, patt_len)]
     # print(f"Locs we are looking for: {targetLoca}")
@@ -250,36 +250,3 @@ if __name__ == "__main__":
 
     locs = string_search(
         bwtChromo1, kmerFstRead[0], rankMat, chromo1.suffix_table)
-    # for kmer in kmerFstRead:
-    #     locs.append(search_kmer_pos(bwtChromo1, rankMat,
-    #                 chromo1.suffix_table, kmer)[1])
-    # print(f"Kmer localisation: {locs}")
-    # verification_pattern(chromo1.DNA, kmerFstRead[0], locs)
-    # recoReadFst = link_kmer_fast(kmerFstRead, locs)
-    # print(f"Reconstructed read: {recoReadFst}")
-    # qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
-    # qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
-    # print(f"Type output link_kmer: {type(recoReadFst[1][0])}")
-    # print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
-
-    bwtList = list(bwtChromo1)
-    # print(f"Sorted BWT list: {sorted(bwtList)[:100]}")
-
-    # cProfile.run("rankMat = bwt.create_rank_mat(bwtChromo1)")
-    rankMat = chromo1.rank_mat.item()
-    # print(f"Rank matrix of A: {rankMat['A'][260000:261000]}")
-
-    locs = []
-    for kmer in kmerFstRead:
-        locs.append(search_kmer_pos(bwtChromo1, rankMat,
-                    chromo1.suffix_table, kmer)[1])
-    print(f"Kmers localisation: {locs}")
-    verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
-    recoReadFst = link_kmer_fast(kmerFstRead, locs)
-    print(f"Reconstructed read: {recoReadFst}")
-    qltyPos1 = get_read_quality(recoReadFst[1][0], locs, 10)  # 1
-    qltyPos2 = get_read_quality(recoReadFst[1][1], locs, 10)  # 5
-    print(f"Type output link_kmer: {type(recoReadFst[1][0])}")
-    print(f"Read qlty1: {qltyPos1} 2: {qltyPos2}")
-    # print(f"Reconstructed read: {recoRead} Lenght read: {len(recoRead[0])}")
-    # print(f"Actual read: {readTest:>7}")

@@ -57,5 +57,5 @@ def inverse_sequence(dna_seq: str) -> str:
 if __name__ == "__main__":
 
     strand = "GCTTAGGAACTATACAGTT"
-    invStrand = "AACTGTATAGTTCCTAAGC"
-    print(f"Inversing test: {inverse_sequence(strand) == invStrand}")  # OK
+    inv_strand = "AACTGTATAGTTCCTAAGC"
+    print(f"Inversing test: {inverse_sequence(strand) == inv_strand}")  # OK
