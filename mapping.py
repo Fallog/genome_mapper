@@ -1,93 +1,100 @@
 import numpy as np
 from Bio import SeqIO
-
-# import cProfile
 from tqdm import tqdm
-
-import bwt
-from dc3 import dc3
 from Chromosome import Chromosome
 
 
-def verification_pattern(chromo, kmer, locs):
-    """_summary_
+def verification_pattern(dna_seq: str, pattern: str, locs: np.ndarray):
+    """Verifies the founded localisation of the pattern argument over
+    the dna_seq argument.
 
     Args:
-        chromo (str): _description_
-        kmer (str): _description_
-        locs (ndarray): _description_
+        dna_seq (str): big string made only with A, T, C and G character
+        pattern (str): shorter string made with the same letters
+        locs (ndarray): every founded localisation of pattern over
+            dna_seq
     """
-    kmerL = kmer.lower()
-    print(f"Kmer length: {len(kmerL)}")
+    if locs[0] == -1:
+        print("No localisation is found")
+    pattern_L = pattern.lower()  #
+    print(f"Kmer length: {len(pattern_L)}")
     for i, loc in enumerate(locs):
         print(f"{i:>3} loc: {loc}")
         print(
-            f"{chromo[loc -10:loc]}--{chromo[loc:loc + len(kmer)]}--{chromo[loc + len(kmer) +1:loc + len(kmer) + 11]}"
+            f"{dna_seq[loc -10:loc]}--{dna_seq[loc:loc + len(pattern)]}--{dna_seq[loc + len(pattern) +1:loc + len(pattern) + 11]}"
         )
 
 
-def get_first_occ(rankMat, base):
-    """_summary_
+def get_first_occ(rank_mat: dict[np.ndarray], base: str) -> int:
+    """Returns the index of the first appearance of the base argument
+    in the sorted version of the bwt_dna.
 
     Args:
-        rankTable (dict): _description_
+        rank_table (dict[np.ndarray]): each ndarray stores the ranks of
+            each nucleotide
+        base (str): nucleotide for which we want its first appearance
 
     Returns:
-        int: _description_
+        int: index of the first appearance of base argument
     """
-    if base == "$":
-        return 0
     if base == "A":
-        return 1
+        return 0
     elif base == "C":
-        return rankMat["A"][-1] + 1
+        return rank_mat["A"][-1]
     elif base == "G":
-        return rankMat["A"][-1] + rankMat["C"][-1] + 1
+        return rank_mat["A"][-1] + rank_mat["C"][-1]
     else:
-        return rankMat["A"][-1] + rankMat["C"][-1] + rankMat["G"][-1] + 1
+        return rank_mat["A"][-1] + rank_mat["C"][-1] + rank_mat["G"][-1]
 
 
-def string_search(bwt_, read, rank_mat, st):
+def string_search(bwt: str, read: str, rank_mat: dict[np.ndarray], suff_t: np.ndarray) -> np.ndarray:
+    """Returns all the localisation of read argument over the DNA
+    sequence that gave the bwt argument. The rank_mat is used to fasten
+    the search and the suff_t argument gives the actual localisation.
+
+    Args:
+        bwt (str): big string made only with A, T, C and G character
+        read (str): shorter string made only with A, T, C and G character
+        rank_mat (dict[np.ndarray]): each ndarray stores the ranks of
+            each nucleotide
+        suff_t (np.ndarray): contains all the suffixes of the DNA
+            sequence used to build bwt
+
+    Returns:
+        np.ndarray: array of the localisations of read over the DNA 
+    """
     top = 0
-    bottom = len(bwt_) - 1
+    bottom = len(bwt) - 1
     while top <= bottom and read != "":
         base = read[-1]
         read = read[: len(read) - 1]
         top = get_first_occ(rank_mat, base) + rank_mat[base][top]
-        # print("top : ", top)
-        # print(get_first_occ(rank_mat, base))
-        # print(rank_mat[base][bottom])
         if top < bottom:
             bottom = (
                 get_first_occ(rank_mat, base) + rank_mat[base][bottom + 1] - 1
-            )  # Because it will count 2times the first
+            )  # Because it will count 2 times the first
         else:
             bottom = get_first_occ(rank_mat, base) + rank_mat[base][bottom]
-        # print("bottom : ", bottom)
-        # print(top - bottom, "wsh")
-        # print(read)
     if read == "":
-        # print(" Find !")
-        return st[top : bottom + 1]
+        return suff_t[top: bottom + 1]
     else:
-        return np.empty(1)
+        return np.array([-1])
 
 
-def cut_read_to_kmer(read: str, kLen: int):
+def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
     """Divide the given read argument into a list of k-mer,
     smaller strings of size the k_len argument.
 
     Args:
         read (str): str made of the characters 'A', 'T', 'C' and 'G'
-        kLen (int): size of the k-mer to be created from the read
+        patt_len (int): size of the k-mer to be created from the read
             sequence
 
     Returns:
         list[str]: list of all the k-mer created from the read
     """
-    readLen = len(read)  # performance
-    return [read[i : i + kLen] for i in range(0, readLen, kLen)]
-
+    readLen = len(read)  # Performance
+    return [read[i: i + patt_len] for i in range(0, readLen, patt_len)]
 
 
 def link_kmer(kmerList, locaList):
@@ -143,7 +150,8 @@ def link_kmer(kmerList, locaList):
 
                     # Si les localisations se suivent, passer au kmer suivant
                     # tout en revenant à sa première localisation
-                    print(f"indFirst: {indFirst} indKmer: {indKmer} indLoca: {indLoca}")
+                    print(
+                        f"indFirst: {indFirst} indKmer: {indKmer} indLoca: {indLoca}")
                     if locaFirst[indFirst] + kmerLen * indKmer == locaNext[indLoca]:
                         print("Equal")
                         read += kmerList[indKmer]
@@ -172,29 +180,33 @@ def link_kmer(kmerList, locaList):
         locaNext = locaList[indKmer]
 
 
-def get_read_quality(locaFst, locaList, kmerLen):
+def get_read_quality(first_loc: np.ndarray, loc_list: np.ndarray, patt_len: str):
     """Returns the "quality" of a read, i.e the number of localisation
     it is possible to retrieve between the 2 extreme localisations
-    (first and last of locaList)
+    (first and last indexes of loc_list)
 
 
     Args:
-        locaFst (numpy.int64):
-        locaList (_type_): _description_
-        kmerLen (_type_): _description_
+        first_loc (np.ndarray): array of every localisations of the
+            first pattern
+        loc_list (np.ndarray): array of every localisation for each
+            pattern of a given read
+        patt_len (np.ndarray): length of the pattern a read is divided
+            into
 
     Returns:
-        int: _description_
+        int: number of mismatched patterns in between first and last
+            patterns in the patterns list 
     """
-    targetLoca = [locaFst + (i * kmerLen) for i in range(1, kmerLen)]
+    targetLoca = [first_loc + (i * patt_len) for i in range(1, patt_len)]
     # print(f"Locs we are looking for: {targetLoca}")
     # Counter giving the number of unplaced kmer between the extreme reads
     mismatchKmer = 0
     indKmer = 1  # Index specifying on which kmer we are
     indParsed = 0  # Index to parse the localisations of inside locaList
     indTarg = 0  # Index to parse targetLoca
-    while indKmer < kmerLen - 1:
-        locaParsed = locaList[indKmer]
+    while indKmer < patt_len - 1:
+        locaParsed = loc_list[indKmer]
         # print(f"Locations parsed: {locaParsed} len: {len(locaParsed)}")
         # If it reaches the end of actual localisation list
         # before returning anything go to next kmer but count one
@@ -320,7 +332,8 @@ if __name__ == "__main__":
     # print(f"First occ of C {get_first_occ(rankMat, 'C')}")  # OK
     # print(f"Rank matrix of C: {rankMat['C'][:100]}")
 
-    locs = string_search(bwtChromo1, kmerFstRead[0], rankMat, chromo1.suffix_table)
+    locs = string_search(
+        bwtChromo1, kmerFstRead[0], rankMat, chromo1.suffix_table)
     # for kmer in kmerFstRead:
     #     locs.append(search_kmer_pos(bwtChromo1, rankMat,
     #                 chromo1.suffix_table, kmer)[1])
@@ -342,7 +355,8 @@ if __name__ == "__main__":
 
     locs = []
     for kmer in kmerFstRead:
-        locs.append(search_kmer_pos(bwtChromo1, rankMat, chromo1.suffix_table, kmer)[1])
+        locs.append(search_kmer_pos(bwtChromo1, rankMat,
+                    chromo1.suffix_table, kmer)[1])
     print(f"Kmers localisation: {locs}")
     verification_pattern(chromo1.DNA, kmerFstRead[0], locs[0])
     recoReadFst = link_kmer_fast(kmerFstRead, locs)
