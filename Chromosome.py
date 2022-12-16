@@ -16,6 +16,7 @@ class Chromosome:
         self.file_name = file_name
         self.DNA = seq
         self.DNA_dol = seq + "$"
+        self.length = len(self.DNA_dol)
         self.dc3_path = f"RESULTS/dc3_result_{file_name}.npy"
         self.bwt_path = f"RESULTS/bwt_result_{file_name}.txt"
         self.rank_mat_path = f"RESULTS/rank_mat_result_{file_name}.npy"

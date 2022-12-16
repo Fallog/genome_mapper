@@ -66,21 +66,24 @@ def string_search(read: str, chromo: Chromosome) -> np.ndarray:
         np.ndarray: array of the localisations of read over the DNA
     """
     top = 0
-    bottom = len(chromo.bwt) - 1
-    while top <= bottom and read != "":
-        base = read[-1]
-        read = read[: len(read) - 1]
-        top = chromo.first_occ[base] + chromo.rank_mat[base][top]
+    bottom = chromo.length - 1
+    f_read = read
+    for base in read[
+        ::-1
+    ]:  # Do ... while, because have to check after the iteration if its good
+        i_first_occ = chromo.first_occ[base]
+        i_rank_mat = chromo.rank_mat[base]
+        read = read[:-1]
+        top = i_first_occ + i_rank_mat[top]
         if top < bottom:
             bottom = (
-                chromo.first_occ[base] + chromo.rank_mat[base][bottom + 1] - 1
+                i_first_occ + i_rank_mat[bottom + 1] - 1
             )  # Because it will count 2 times the first
         else:
-            bottom = chromo.first_occ[base] + chromo.rank_mat[base][bottom]
-    if read == "":
-        return np.sort(chromo.suffix_table[top : bottom + 1], axis=0, kind="mergesort")
-    else:
-        return np.array([-1])
+            bottom = i_first_occ + i_rank_mat[bottom]
+        if not (top <= bottom):
+            return np.array([-1])
+    return np.sort(chromo.suffix_table[top : bottom + 1], axis=0, kind="mergesort")
 
 
 def cut_read_to_kmer(read: str, patt_len: int) -> list[str]:
