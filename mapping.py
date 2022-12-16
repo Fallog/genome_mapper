@@ -67,7 +67,6 @@ def string_search(read: str, chromo: Chromosome) -> np.ndarray:
     """
     top = 0
     bottom = chromo.length - 1
-    f_read = read
     for base in read[
         ::-1
     ]:  # Do ... while, because have to check after the iteration if its good
